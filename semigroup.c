@@ -5,11 +5,15 @@
 #include "semigroup.h"
 
 /*STATIC DECLARATIONS*/
+
+/*SECTION 1: BASIC (SEMI)GROUP METHODS*/
+/*SECTION 2: SEMIGROUP ORBITS*/
 static long** ZM_to_Cmatrix(GEN M);
 static void findmissing(long Bmin, long Bmax, long ***mats, long nmats, long *start, long n, long *res, long nres, long modulus, long entry);
 static void missing_tofile(long blocks, unsigned long **rclass, long Bmin, long Bmax, long *start, long n, long *res, long nres, long ubits, long modulus);
 static void findmissing_parabolic(long Bmin, long Bmax, long ***mats, long ***matsinv, long nmats, long *start, long n, long *res, long nres, long modulus, long entry);
 static int findmissinglist(hashtable *hmiss, long Bmin, long Bmax, long ***mats, long ***matsinv, long nmats, long *start, long n, long entry);
+/*SECTION 3: LINEAR REGRESSION*/
 
 /*MAIN BODY*/
 
@@ -49,19 +53,22 @@ LRword(GEN M)
 INLINE long
 ZM_largest_s(GEN M)
 {
-  long a = maxss(itos(gcoeff(M, 1, 1)), itos(gcoeff(M, 1, 2)));
-  long b = maxss(itos(gcoeff(M, 2, 1)), itos(gcoeff(M, 2, 2)));
-  return maxss(a, b);
+  long x = itos(gcoeff(M, 1, 1)), lM = lg(M), i, j;
+  for (j = 2; j < lM; j++) x = maxss(x, itos(gcoeff(M, 1, j)));
+  for (i = 2; i < lM; i++) {
+    for (j = 1; j < lM; j++) x = maxss(x, itos(gcoeff(M, i, j)));
+  }
+  return x;
 }
 
 /*We estimate the growth, by computing all elements of the orbit (given by the column vector start) that are at most binsize * Nbins. We then group their sizes into bins, and runs a linear regression on the data to determine the growth rate. Returns [c, nu, R^2], where up to N we have c*N^nu, and the R^2 value of the regression is given.*/
 GEN
-semigroupgrowth(GEN mats, long binsize, long Nbins, GEN start, long prec)
+semigroup_growth(GEN mats, long binsize, long Nbins, GEN start, long prec)
 {
   pari_sp av = avma;
   if (!start) start = mkcol2s(1, 1);
   if (typ(start) == t_VEC) start = gtocol(start);
-  GEN v = semigroupmats(mats, binsize * Nbins);
+  GEN v = semigroup_mats(mats, binsize * Nbins);
   long lv, i;
   GEN images = cgetg_copy(v, &lv);
   for (i = 1; i < lv; i++) gel(images, i) = ZM_ZC_mul(gel(v, i), start);
@@ -94,47 +101,47 @@ semigroupgrowth(GEN mats, long binsize, long Nbins, GEN start, long prec)
 
 /*Assume the matrices in mats all have positive entries and infinite order. This returns the matrices in the semigroup they generate that have all entries at most N. If there are relations, the corresponding matrices will get counted multiple times.*/
 GEN
-semigroupmats(GEN mats, long N)
+semigroup_mats(GEN mats, long N)
 {
   pari_sp av = avma;
-  long lmats = lg(mats);
+  long lmats = lg(mats), nM = lg(gel(mats, 1)) - 1;
   long maxdepth = 100, maxfound = 10000, vind = 0;
   GEN v = cgetg(maxfound + 1, t_VEC);
   GEN depthseq = cgetg(maxdepth + 1, t_VEC);
   GEN swaps = const_vecsmall(maxdepth, 0);
-  gel(depthseq, 1) = matid(2);
+  gel(depthseq, 1) = matid(nM);
   long ind = 2;
   while (ind > 1) {
-	long cind = ++swaps[ind];
-	if (cind == lmats) {/*Overflowed, go back.*/
-	  swaps[ind] = 0;
-	  ind--;
-	  continue;
-	}
-	GEN M = ZM_mul(gel(depthseq, ind - 1), gel(mats, cind));
-	long maxM = ZM_largest_s(M);
-	if (maxM > N) continue;/*Too big! Go back.*/
-	vind++;
-	if (vind > maxfound) {/*Double size.*/
-	  maxfound <<= 1;
-	  v = vec_lengthen(v, maxfound);
-	}
-	gel(v, vind) = M;
-	gel(depthseq, ind) = M;
-	ind++;
-	if (ind > maxdepth) {/*Double depth sequence / swaps length.*/
-	  maxdepth <<= 1;
-	  depthseq = vec_lengthen(depthseq, maxdepth);
-	  swaps = vecsmall_lengthen(swaps, maxdepth);
-	  long i;
-	  for (i = ind; i <= maxdepth; i++) swaps[i] = 0;
-	}
+    long cind = ++swaps[ind];
+    if (cind == lmats) {/*Overflowed, go back.*/
+      swaps[ind] = 0;
+      ind--;
+      continue;
+    }
+    GEN M = ZM_mul(gel(depthseq, ind - 1), gel(mats, cind));
+    long maxM = ZM_largest_s(M);
+    if (maxM > N) continue;/*Too big! Go back.*/
+    vind++;
+    if (vind > maxfound) {/*Double size.*/
+      maxfound <<= 1;
+      v = vec_lengthen(v, maxfound);
+    }
+    gel(v, vind) = M;
+    gel(depthseq, ind) = M;
+    ind++;
+    if (ind > maxdepth) {/*Double depth sequence / swaps length.*/
+      maxdepth <<= 1;
+      depthseq = vec_lengthen(depthseq, maxdepth);
+      swaps = vecsmall_lengthen(swaps, maxdepth);
+      long i;
+      for (i = ind; i <= maxdepth; i++) swaps[i] = 0;
+    }
   }
   return gerepilecopy(av, vec_shorten(v, vind));
 }
 
 
-/*SECTION 2: MISSING NUMBERS IN ORBITS*/
+/*SECTION 2: SEMIGROUP ORBITS*/
 
 /*Takes in a ZM M and returns a malloc'ed array representing M as a C array.*/
 static long**
@@ -710,6 +717,57 @@ findmissinglist(hashtable *hmiss, long Bmin, long Bmax, long ***mats, long ***ma
   for (i = 0; i < maxdepth; i++) pari_free(depthseq[i]);
   pari_free(depthseq);
   return 1;/*We made it!*/
+}
+
+/*Returns the largest entry of the ZC C as a long.*/
+INLINE long
+ZC_largest_s(GEN C)
+{
+  long x = itos(gel(C, 1)), lC = lg(C), i;
+  for (i = 2; i < lC; i++) x = maxss(x, itos(gel(C, i)));
+  return x;
+}
+
+/*Returns the orbit of mats*start up to max size of entries B. This is not as efficient as the other methods, so use this for intial observation finding, and use the faster methods for larger searches.*/
+GEN
+semigroup_orbit(GEN mats, long B, GEN start)
+{
+  pari_sp av = avma;
+  start = ZC_copy(start);/*Ensure it is a column vector.*/
+  long lmats = lg(mats);
+  long maxdepth = 100, maxfound = 10000, vind = 0;
+  GEN v = cgetg(maxfound + 1, t_VEC);
+  GEN depthseq = cgetg(maxdepth + 1, t_VEC);
+  GEN swaps = const_vecsmall(maxdepth, 0);
+  gel(depthseq, 1) = start;
+  long ind = 2;
+  while (ind > 1) {
+    long cind = ++swaps[ind];
+    if (cind == lmats) {/*Overflowed, go back.*/
+      swaps[ind] = 0;
+      ind--;
+      continue;
+    }
+    GEN M = ZM_ZC_mul(gel(mats, cind), gel(depthseq, ind - 1));
+    long maxM = ZC_largest_s(M);
+    if (maxM > B) continue;/*Too big! Go back.*/
+    vind++;
+    if (vind > maxfound) {/*Double size.*/
+      maxfound <<= 1;
+      v = vec_lengthen(v, maxfound);
+    }
+    gel(v, vind) = M;
+    gel(depthseq, ind) = M;
+    ind++;
+    if (ind > maxdepth) {/*Double depth sequence / swaps length.*/
+      maxdepth <<= 1;
+      depthseq = vec_lengthen(depthseq, maxdepth);
+      swaps = vecsmall_lengthen(swaps, maxdepth);
+      long i;
+      for (i = ind; i <= maxdepth; i++) swaps[i] = 0;
+    }
+  }
+  return gerepilecopy(av, vec_shorten(v, vind));
 }
 
 
