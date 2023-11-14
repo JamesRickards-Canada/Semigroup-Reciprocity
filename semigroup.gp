@@ -29,4 +29,9 @@ semigroup_library=strprintf("./libsemigroup-%d-%d.so", parigp_version[1], parigp
   install(rsquared,"GGG");
   addhelp(rsquared,"rsquared(X, y, fit): returns the R^2 value for the proposed linear regression, where the input is X, output is y, and fit is the proposed parameters.");
 
+/*paper.gp*/
+  addhelp(testkronaction,"testkronaction(B, n, xymin, xymax): tests Proposition 3.2 by calling kronactioncorrect on n random matrices in SL(2, Z)^{>=0} with entries bounded by B. The values of x, y tried are all valid pairs with xymin<=x, y<=xymax. If the formula fails, we print the failing inputs, and raise an error. If no error occurs, all tests passed successfully.");
+  addhelp(kronactioncorrect,"kronactioncorrect(M, x, y): tests Proposition 3.2: M=[a, b;c, d] in SL(2, Z)^{>=0} a, b, c, d >= 0, x, y>=0 coprime, gcd(x, d)=1, this proposition gives a formula for kron(ax+by/cx+dy). This function returns 1 if and only if the formula is correct for the given inputs. If the method returns anything other than 1, then the formula has failed.");
+
+read("paper.gp");
 default(parisize, "4096M");\\Must come at the end
