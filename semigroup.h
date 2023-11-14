@@ -8,6 +8,7 @@ GEN semigroupmats(GEN mats, long N);
 /*SECTION 2: MISSING NUMBERS IN ORBITS*/
 GEN semigroup_missing(GEN mats, GEN B, GEN start, GEN congs, long entry);
 GEN semigroup_missing_parabolic(GEN mats, GEN B, GEN start, GEN congs, long entry);
+int semigroup_missinglist(GEN mats, GEN miss, GEN start, long entry);
 
 /*SECTION 3: LINEAR REGRESSION*/
 GEN OLS(GEN X, GEN y, int retrsqr);

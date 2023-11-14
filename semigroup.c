@@ -9,6 +9,7 @@ static long** ZM_to_Cmatrix(GEN M);
 static void findmissing(long Bmin, long Bmax, long ***mats, long nmats, long *start, long n, long *res, long nres, long modulus, long entry);
 static void missing_tofile(long blocks, unsigned long **rclass, long Bmin, long Bmax, long *start, long n, long *res, long nres, long ubits, long modulus);
 static void findmissing_parabolic(long Bmin, long Bmax, long ***mats, long ***matsinv, long nmats, long *start, long n, long *res, long nres, long modulus, long entry);
+static int findmissinglist(hashtable *hmiss, long Bmin, long Bmax, long ***mats, long ***matsinv, long nmats, long *start, long n, long entry);
 
 /*MAIN BODY*/
 
@@ -297,7 +298,7 @@ findmissing(long Bmin, long Bmax, long ***mats, long nmats, long *start, long n,
     else if (maxmiss_bit[res[i]] != -1) break;/*We have at least one valid residue.*/
   }
   long maxdepth = 100;/*Maximal depth, to start.*/
-  long **depthseq = (long **)pari_malloc(maxdepth * sizeof(long *));/*Tracks the sequence of Apollonian moves.*/
+  long **depthseq = (long **)pari_malloc(maxdepth * sizeof(long *));/*Tracks the sequence of swaps.*/
   if (!depthseq) {
     printf("Insufficient memory to allocate to store the depth sequence.\n");
     exit(1);
@@ -596,6 +597,120 @@ findmissing_parabolic(long Bmin, long Bmax, long ***mats, long ***matsinv, long 
   return;
 }
 
+/*Given a sorted list of positive integers miss, this returns 1 if none of them are in the given orbit, and 0 if they are.*/
+int
+semigroup_missinglist(GEN mats, GEN miss, GEN start, long entry)
+{
+  pari_sp av = avma;
+  if (!RgV_is_ZVpos(miss)) pari_err_TYPE("miss must be a sorted vector of positive integers.", miss);
+  long lmiss = lg(miss);
+  if (lmiss == 1) return 1;/*Nothing to miss!*/
+  long Bmin = itos(gel(miss, 1)), Bmax = itos(gel(miss, lmiss - 1));
+  long n = lg(start) - 1;
+  if (entry < 0 || entry > n) pari_err_TYPE("entry must be an index from 1 to n, the dimension of the vectors computed", stoi(entry));
+  long nmats = lg(mats) - 1, i;
+  long ***Cmats = (long ***)pari_malloc(nmats * sizeof(long **));/*Stores the matrices as C arrays*/
+  long ***Cmatsinv = (long ***)pari_malloc(nmats * sizeof(long **));/*Inverses*/
+  for (i = 0; i < nmats; i++) {
+    Cmats[i] = ZM_to_Cmatrix(gel(mats, i + 1));
+    Cmatsinv[i] = ZM_to_Cmatrix(QM_inv(gel(mats, i + 1)));
+  }
+  long *Cstart = (long *)pari_malloc(n * sizeof(long));/*Stores the starting tuple.*/
+  for (i = 0; i < n; i++) Cstart[i] = itos(gel(start, i + 1));
+  hashtable *hmiss = hash_create_ulong(lmiss, 1);/*Hashtable of the missing entries.*/
+  for (i = 1; i < lmiss; i++) hash_insert(hmiss, (void *)itou(gel(miss, i)), NULL);/*Insert them.*/
+  int result = findmissinglist(hmiss, Bmin, Bmax, Cmats, Cmatsinv, nmats, Cstart, n, entry - 1);
+  pari_free(Cstart);
+  long j;
+  for (i = 0; i < nmats; i++) {
+    for (j = 0; j < n; j++) {
+      pari_free(Cmats[i][j]);
+      pari_free(Cmatsinv[i][j]);
+    }
+    pari_free(Cmats[i]);
+    pari_free(Cmatsinv[i]);
+  }
+  pari_free(Cmats);
+  pari_free(Cmatsinv);
+  hash_destroy(hmiss);
+  return gc_int(av, result);
+}
+
+/*executes semigroup_missinglist*/
+static int
+findmissinglist(hashtable *hmiss, long Bmin, long Bmax, long ***mats, long ***matsinv, long nmats, long *start, long n, long entry)
+{
+  long maxdepth = 100, i;/*Maximal depth, to start.*/
+  long **depthseq = (long **)pari_malloc(maxdepth * sizeof(long *));/*Tracks the sequence of moves.*/
+  if (!depthseq) {
+    printf("Insufficient memory to allocate to store the depth sequence.\n");
+    exit(1);
+  }
+  int *swaps = (int *)pari_malloc(maxdepth * sizeof(int));/*Tracks the sequence of swaps.*/
+  if (!swaps) {
+    printf("Insufficient memory to allocate to store the swaps.\n");
+    exit(1);
+  }
+  for (i = 0; i < maxdepth; i++) {
+    depthseq[i] = (long *)pari_malloc(n * sizeof(long));
+    swaps[i] = -1;/*Initialize to all -1's*/
+  }
+  if (hash_search(hmiss, (void *)start[entry])) {/*Initial entry was in our missing list.*/
+    pari_free(swaps);
+    for (i = 0; i < maxdepth; i++) pari_free(depthseq[i]);
+    pari_free(depthseq);
+    return 0;
+  }
+  for (i = 0; i < n; i++) depthseq[0][i] = start[i];
+  long ind = 1;/*Which depth we are working at.*/
+  while (ind > 0) {/*We are coming in trying to swap this circle out.*/
+    int cind = ++swaps[ind];/*Increment the swapping index.*/
+    if (cind == nmats) {/*Overflowed, go back.*/
+      swaps[ind] = -1;
+      ind--;
+      continue;
+    }
+    long lastind = ind - 1, j;
+    int toofar = 0;
+    for (i = 0; i < n; i++) {/*Apply the matrix action.*/
+      long en = 0;
+      for (j = 0; j < n; j++) en += mats[cind][i][j] * depthseq[lastind][j];
+      if (en > Bmax) toofar = 1;
+      depthseq[ind][i] = en;
+    }
+    if (hash_search(hmiss, (void *)depthseq[ind][entry])) {/*Entry is in our missing list.*/
+      pari_free(swaps);
+      for (i = 0; i < maxdepth; i++) pari_free(depthseq[i]);
+      pari_free(depthseq);
+      return 0;
+    }
+    if (toofar) continue;/*A single entry was too large.*/
+    ind++;
+    if (ind == maxdepth) {/*We are going too deep, must pari_reallocate the storage location.*/
+      long newdepth = maxdepth << 1;/*Double it.*/
+      depthseq = pari_realloc(depthseq, newdepth * sizeof(long *));
+      if (!depthseq) {
+        printf("Insufficient memory to pari_reallocate the depth sequence.\n");
+        exit(1);
+      }
+      swaps = pari_realloc(swaps, newdepth * sizeof(int));
+      if (!swaps) {
+        printf("Insufficient memory to pari_reallocate the swaps.\n");
+        exit(1);
+      }
+      for (i = maxdepth; i < newdepth; i++) {
+        depthseq[i] = (long *)pari_malloc(n * sizeof(long));
+        swaps[i] = -1;
+      }
+      maxdepth = newdepth;
+    }
+  }
+  /*Time to free all of the allocated memory.*/
+  pari_free(swaps);
+  for (i = 0; i < maxdepth; i++) pari_free(depthseq[i]);
+  pari_free(depthseq);
+  return 1;/*We made it!*/
+}
 
 
 /*SECTION 3: LINEAR REGRESSION*/
