@@ -135,8 +135,8 @@ table1_bigtest(xymax, B) = {
     for (y = 1, xymax,
       if (gcd(x, y) == 1,
         v[table1_line([x, y])]++;
-        if (table1_iscorrect([x, y], B, 1) != 1,printf("WRONG: (x, y, B) = %d %d %d\n", x, y, B));
-        if (table1_iscorrect([x, y], B, 2) != 1,printf("WRONG: (x, y, B) = %d %d %d\n", x, y, B));
+        if (table1_iscorrect([x, y], B, 1) != 1,printf("WRONG: (x, y, B, entry) = %d %d %d 1\n", x, y, B));
+        if (table1_iscorrect([x, y], B, 2) != 1,printf("WRONG: (x, y, B, entry) = %d %d %d 2\n", x, y, B));
       );
     );
   );
