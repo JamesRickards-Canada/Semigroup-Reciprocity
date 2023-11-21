@@ -923,7 +923,24 @@ psi_rep(long x, long y, long n, long entry)
 {
   pari_sp av = avma;
   long u, v, ushift, vshift;/*u, v will be set to the solution to ux+vy=n that minimizes u. ushift >= 0 and vshift <= 0 are what we continually add to u and v to generate all solutions.*/
-  u = Fl_div(n, x, y);/*u == n/x mod y.*/
+  if (!x) {/*(0, 1) case*/
+    if (y != 1) pari_err_TYPE("x and y need to be coprime and nonnegative", mkvec2s(x, y));
+    if (entry == 1) {/*Numerator*/
+      return gc_int(av, 1);/*u=anything, v=n, can always make kron(u, v)=1 and u==1(4)*/
+    }
+    if (n % 4 != 1) return gc_int(av, 0);/*Congruence obstruction, no solutions(u, v).*/
+    return gc_int(av, 1);/*u=anything, v=n, can always make kron(u, v)=1 and u==0(4).*/
+  }
+  else if (!y) {/*(1, 0) case*/
+    if (x != 1) pari_err_TYPE("x and y need to be coprime and nonnegative", mkvec2s(x, y));
+    if (entry == 1) {/*Numerator*/
+      if (n % 4 != 1) return gc_int(av, 0);/*Congruence obstruction, no solutions(u, v).*/
+      return gc_int(av, 1);/*u=n, v=anything, can always make kron(u, v)=1.*/
+    }
+    if (n % 4 != 0) return gc_int(av, 0);/*Congruence obstruction, no solutions(u, v).*/
+    return gc_int(av, 1);/*u=n, v=anything, can always make kron(u, v)=1 and v==1(4).*/
+  }
+  else u = Fl_div(n % y, x % y, y);/*u == n/x mod y, and both x, y are non-zero.*/
   if (entry == 1) {/*Numerator*/
     long ym4 = y % 4;
     if (ym4 == 0) {/*4 | y*/
@@ -967,7 +984,8 @@ psi_rep(long x, long y, long n, long entry)
       ushift = y << 2;
       vshift = - x << 2;
     }
-    long vshiftm4 = vshift % 4;/*Now we need to also ensure v == 1 (4) only.*/
+    if (v < 0) return gc_int(av, 0);/*No solution with both u, v>=0 and congruence obeyed.*/
+    long vshiftm4 = smodss(vshift, 4);/*Now we need to also ensure v == 1 (4) only. We use smodss since % doesn't work as we want if vshift < 0.*/
     if (vshiftm4 == 0) {/*4 | vshift*/
       if (v % 4 != 1) return gc_int(av, 0);/*Congruence obstruction, no solutions(u, v).*/
     }
@@ -975,15 +993,15 @@ psi_rep(long x, long y, long n, long entry)
       if (v % 2 == 0) return gc_int(av, 0);/*Congruence obstruction, no solutions(u, v).*/
       if (v % 4 == 3) {/*Correct it.*/
         u += ushift;
-        v -= vshift;
+        v += vshift;
       }
       ushift <<= 1;/*Must double them.*/
       vshift <<= 1;
     }
     else {/*vshift is odd.*/
-      while (v % 4 != 1) {
+      while (smodss(v, 4) != 1) {
         u += ushift;
-        v -= vshift;
+        v += vshift;
       }
       ushift <<= 2;/*Must quadruple them.*/
       vshift <<= 2;
