@@ -156,7 +156,7 @@ GEN
 semigroup_mgens(GEN mats)
 {
   /*Basic strategy: go one by one, testing if the element is required. We do this by repeatedly multiplying on the left/right by all other matrices until our matrix has negative entries.*/
-  pari_sp av = avma;
+  pari_sp av = avma, av1;
   long lgmats, i, minind = 1;/*minind tracks the first surviving index.*/
   GEN matsinv = cgetg_copy(mats, &lgmats);/*Store the matrix inverses.*/
   if (lgmats == 1) { set_avma(av); return cgetg(1, t_VEC); }/*No input.*/
@@ -170,12 +170,36 @@ semigroup_mgens(GEN mats)
   previnds[1] = 0;
   hashtable all;
   hash_init_GEN(&all, lgmats, &ZM_equal, 1);/*Stores the matrices for searching.*/
-  for (i = 1; i < lgmats; i++) hash_insert(&all, (void *)gel(mats, i), NULL);/*Insert the matrices.*/
+  long idind = 0;
+  for (i = 1; i < lgmats; i++) {
+    if (!gequal1(gel(mats, i))) {
+      hash_insert(&all, (void *)gel(mats, i), NULL);/*Insert the non-identity matrix.*/
+      continue;
+    }
+    idind = i;/*Index of the identity matrix.*/
+    if (i == 1) {/*Delete the first one.*/
+      minind = 2;/*Update the minimum index.*/
+      previnds[2] = 0;/*Now this points to 0. previnds[1] is already 0.*/
+      nextinds[1] = 0;/*This is also gone.*/
+      continue;
+    }
+    long w = nextinds[i];/*i+1 or 0 if i==lgmats-1.*/
+    nextinds[i - 1] = w;
+    nextinds[i] = 0;
+    if (w) previnds[w] = previnds[i];/*If we weren't the last one, update this.*/
+    previnds[i] = 0;/*Delete*/
+  }
+  av1 = avma;
   long ind, n = lg(gel(mats, 1)) - 1, maxdepth = 20, dind;/*ind = index we are trying to remove; n x n matrices.*/
   GEN depthinds = const_vecsmall(maxdepth, 0);/*Tracks the sequence of moves. Index i>0 denotes multiplying by matsinv[i] on the left, and i<0 denotes multiplying by matsinv[-i] on the right. We do 1, -1, 2, -2, ...*/
   GEN depthseq = cgetg(maxdepth + 1, t_VEC);/*Tracks the resulting matrices.*/
   for (ind = 1; ind < lgmats; ind++) {
-
+    if (gc_needed(av1, 2)) {/*GARBAGE DAY!*/
+      set_avma(av1);
+      depthinds = const_vecsmall(maxdepth, 0);
+      depthseq = cgetg(maxdepth + 1, t_VEC);
+    }
+    if (ind == idind) continue;/*Only one that could be pre-deleted.*/
     dind = 2;
     gel(depthseq, 1) = gel(mats, ind);/*Starting matrix.*/
     depthinds[2] = 0;/*Reset*/
@@ -210,8 +234,8 @@ semigroup_mgens(GEN mats)
       dind++;
       if (dind > maxdepth) {/*Make these longer.*/
          maxdepth <<= 1;/*Double it.*/
-         vec_lengthen(depthseq, maxdepth);
-         vecsmall_lengthen(depthinds, maxdepth);
+         depthseq = vec_lengthen(depthseq, maxdepth);
+         depthinds = vecsmall_lengthen(depthinds, maxdepth);
       }
       depthinds[dind] = 0;/*(Re)set to 0.*/
     }
