@@ -883,9 +883,7 @@ semigroup_orbit(GEN mats, long B, GEN start)
 }
 
 
-
 /*SECTION 3: PSI METHODS*/
-
 
 /*Returns all the matrices in Psi with maximum entry N.*/
 GEN
@@ -916,6 +914,87 @@ psi_mats(long N)
     }
   }
   return gerepilecopy(av, vec_shorten(mats, ind));
+}
+
+
+/*Returns 1 if N is a numerator(entry=1) or denominator(entry=2) in the orbit Psi*[x,y]~. This is based on Lemma 9.2.*/
+int
+psi_rep(long x, long y, long n, long entry)
+{
+  pari_sp av = avma;
+  long u, v, ushift, vshift;/*u, v will be set to the solution to ux+vy=n that minimizes u. ushift >= 0 and vshift <= 0 are what we continually add to u and v to generate all solutions.*/
+  u = Fl_div(n, x, y);/*u == n/x mod y.*/
+  if (entry == 1) {/*Numerator*/
+    long ym4 = y % 4;
+    if (ym4 == 0) {/*4 | y*/
+      if (u % 4 != 1) return gc_int(av, 0);/*Congruence obstruction, no solutions(u, v).*/
+      v = (n - x * u) / y;
+      ushift = y;
+      vshift = -x;
+    }
+    else if (ym4 == 2) {/*2 || y*/
+      if (u % 2 == 0) return gc_int(av, 0);/*Congruence obstruction, no solutions(u, v).*/
+      if (u % 4 == 3) u += y;
+      v = (n - x * u) / y;
+      ushift = y << 1;
+      vshift = - x << 1;
+    }
+    else {/*y odd*/
+      while (u % 4 != 1) u += y;/*Making it correct mod 4.*/
+      v = (n - x * u) / y;
+      ushift = y << 2;
+      vshift = - x << 2;
+    }
+  }
+  else {/*Denominator*/
+    long ym4 = y % 4;/*First, we ensure u == 0 (4) only.*/
+    if (ym4 == 0) {/*4 | y*/
+      if (u % 4 != 0) return gc_int(av, 0);/*Congruence obstruction, no solutions(u, v).*/
+      v = (n - x * u) / y;
+      ushift = y;
+      vshift = -x;
+    }
+    else if (ym4 == 2) {/*2 || y*/
+      if (u % 2 == 1) return gc_int(av, 0);/*Congruence obstruction, no solutions(u, v).*/
+      if (u % 4 == 2) u += y;
+      v = (n - x * u) / y;
+      ushift = y << 1;
+      vshift = - x << 1;
+    }
+    else {/*y odd*/
+      while (u % 4 != 0) u += y;/*Making it correct mod 4.*/
+      v = (n - x * u) / y;
+      ushift = y << 2;
+      vshift = - x << 2;
+    }
+    long vshiftm4 = vshift % 4;/*Now we need to also ensure v == 1 (4) only.*/
+    if (vshiftm4 == 0) {/*4 | vshift*/
+      if (v % 4 != 1) return gc_int(av, 0);/*Congruence obstruction, no solutions(u, v).*/
+    }
+    if (vshiftm4 == 2) {/*2 | vshift*/
+      if (v % 2 == 0) return gc_int(av, 0);/*Congruence obstruction, no solutions(u, v).*/
+      if (v % 4 == 3) {/*Correct it.*/
+        u += ushift;
+        v -= vshift;
+      }
+      ushift <<= 1;/*Must double them.*/
+      vshift <<= 1;
+    }
+    else {/*vshift is odd.*/
+      while (v % 4 != 1) {
+        u += ushift;
+        v -= vshift;
+      }
+      ushift <<= 2;/*Must quadruple them.*/
+      vshift <<= 2;
+    }
+  }
+  while (v >= 0) {
+   if (kross(u, v) == 1) return gc_int(av, 1);
+   u += ushift;
+   v += vshift;
+  }
+  return gc_int(av, 0);/*Failed to find a solution.*/
 }
 
 

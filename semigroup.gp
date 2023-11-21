@@ -3,7 +3,7 @@ parigp_version=version();
 semigroup_library=strprintf("./libsemigroup-%d-%d.so", parigp_version[1], parigp_version[2]);
 
 /*thin.c*/
-  addhelp(semigroup,"Basic (semi)group methods:\n\tLRword, semigroup_growth, semigroup_mats, semigroup_mgens.\n\nSemigroup orbits:\n\tsemigroup_missing, semigroup_missing_parabolic, semigroup_missinglist, semigroup_orbit.\n\nPsi methods:\n\tpsi_mats.\n\nLinear regression:\n\tOLS, OLS_nointercept, OLS_single, rsquared.\n\nPaper methods:\n\ttestkronaction, kronactioncorrect, psi1_missingsquares, table1_line, table1_prediction, table1_iscorrect.");
+  addhelp(semigroup,"Basic (semi)group methods:\n\tLRword, semigroup_growth, semigroup_mats, semigroup_mgens.\n\nSemigroup orbits:\n\tsemigroup_missing, semigroup_missing_parabolic, semigroup_missinglist, semigroup_orbit.\n\nPsi methods:\n\tpsi_mats, psi_rep.\n\nLinear regression:\n\tOLS, OLS_nointercept, OLS_single, rsquared.\n\nPaper methods:\n\ttestkronaction, kronactioncorrect, psi1_missingsquares, table1_line, table1_prediction, table1_iscorrect.");
   
   /*SECTION 1: BASIC (SEMI)GROUP METHODS*/
   install(LRword,"G",,semigroup_library);
@@ -28,6 +28,8 @@ semigroup_library=strprintf("./libsemigroup-%d-%d.so", parigp_version[1], parigp
   /*SECTION 3: PSI METHODS*/
   install(psi_mats,"L");
   addhelp(psi_mats,"psi_mats(N): Returns all the matrices in Psi with maximum entry N (Psi as defined in the paper: elements of Gamma_1(4) with nonnegative entries and Kronecker symbol of a row/column 1.");
+  install(psi_rep,"iLLLD1,L,");
+  addhelp(psi_rep,"psi_rep(x, y, n, {entry=1}): returns 1 if n is a numerator (entry=1) or denominator (entry=2) in the orbit Psi*[x,y]~. This is based on Lemma 9.2. All inputs must fit as C long's on your operating system, and (x, y) need to be nonnegative and coprime.");
 
   /*SECTION 4: LINEAR REGRESSION*/
   install(OLS,"GGD1,L,");

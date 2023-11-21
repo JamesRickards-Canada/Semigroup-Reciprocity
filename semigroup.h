@@ -14,6 +14,7 @@ GEN semigroup_orbit(GEN mats, long B, GEN start);
 
 /*SECTION 3: PSI METHODS*/
 GEN psi_mats(long N);
+int psi_rep(long x, long y, long n, long entry);
 
 /*SECTION 4: LINEAR REGRESSION*/
 GEN OLS(GEN X, GEN y, int retrsqr);
