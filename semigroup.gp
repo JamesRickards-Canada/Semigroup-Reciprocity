@@ -3,7 +3,7 @@ parigp_version=version();
 semigroup_library=strprintf("./libsemigroup-%d-%d.so", parigp_version[1], parigp_version[2]);
 
 /*thin.c*/
-  addhelp(semigroup,"Basic (semi)group methods:\n\tLRword, semigroup_growth, semigroup_mats, semigroup_mgens.\n\nSemigroup orbits:\n\tsemigroup_missing, semigroup_missing_parabolic, semigroup_missinglist, semigroup_orbit.\n\nPsi methods:\n\tpsi_mats, psi_rep.\n\nLinear regression:\n\tOLS, OLS_nointercept, OLS_single, rsquared.\n\nPaper methods:\n\ttestkronaction, kronactioncorrect, psi1_missingsquares, table1_line, table1_prediction, table1_iscorrect.");
+  addhelp(semigroup,"Basic (semi)group methods:\n\tLRword, semigroup_growth, semigroup_mats, semigroup_mgens.\n\nSemigroup orbits:\n\tsemigroup_missing, semigroup_missing_parabolic, semigroup_missinglist, semigroup_orbit.\n\nPsi methods:\n\tpsi_mats, psi_rep.\n\nLinear regression:\n\tOLS, OLS_nointercept, OLS_single, rsquared.\n\nPaper methods:\n\ttestkronaction, kronactioncorrect, psi_missingsquares, psi1_missingsquares, table1_line, table1_prediction, table1_iscorrect_psi, table1_iscorrect_psi1, table1_bigtest.");
   
   /*SECTION 1: BASIC (SEMI)GROUP METHODS*/
   install(LRword,"G",,semigroup_library);
@@ -44,11 +44,13 @@ semigroup_library=strprintf("./libsemigroup-%d-%d.so", parigp_version[1], parigp
 /*paper.gp*/
   addhelp(testkronaction,"testkronaction(B, n, xymin, xymax): tests Proposition 3.2 by calling kronactioncorrect on n random matrices in SL(2, Z)^{>=0} with entries bounded by B. The values of x, y tried are all valid pairs with xymin<=x, y<=xymax. If the formula fails, we print the failing inputs, and raise an error. If no error occurs, all tests passed successfully.");
   addhelp(kronactioncorrect,"kronactioncorrect(M, xy): tests Proposition 3.2: M=[a, b;c, d] in SL(2, Z)^{>=0} a, b, c, d >= 0, xy=[x, y] with x, y>=0 coprime, gcd(x, d)=1, this proposition gives a formula for kron(ax+by/cx+dy). This function returns 1 if and only if the formula is correct for the given inputs. If the method returns anything other than 1, then the formula has failed.");
+  addhelp(psi_missingsquares,"psi_missingsquares(xy, B, entry): tests if all the squares in the orbit of Psi*xy are missing up to B^2. Returns 1 if they are missing, 0 else.");
   addhelp(psi1_missingsquares,"psi1_missingsquares(xy, B, entry): tests if all the squares in the orbit of Psi_1*xy are missing up to B^2. Returns 1 if they are missing, 0 else.");
   addhelp(table1_line,"table1_line(xy): returns the line of Table 1 that our input corresponds to.");
   addhelp(table1_prediction,"table1_prediction(xy, entry): returns 1 if we know there are no squares in the orbit of Psi1*[x, y]~ due to a reciprocity obstruction, 0 if we expect there to be squares (based on Table 1), and -1 if there are no squares due to a congruence obstruction. entry=1 or 2 corresponding to numerator/denominator.");
-  addhelp(table1_iscorrect,"table1_iscorrect(xy, B, entry): returns 1 if Table 1 gives the correct prediction for the missing squares up to B^2 in the orbit for [x, y]~. If squares are ruled out by congruence, we simply return 1.");
-  addhelp(table1_bigtest,"table1_bigtest(xymax, B): tests Table 1 for all 1<=x, y<=xymax and squares up to B. Any failures of the table are output. If squares were predicted to not exist then this is a big issue! If squares were predicted to exist but did not, try increasing B for this example to see if you did not compute far enough. Returns the vector of counts of how many pairs of each line (1 to 22) were tested.");
+  addhelp(table1_iscorrect_psi,"table1_iscorrect_psi(xy, B, entry): returns 1 if Table 1 gives the correct prediction for the missing squares up to B^2 in the Psi orbit for [x, y]~. If squares are ruled out by congruence, we simply return 1.");
+  addhelp(table1_iscorrect_psi1,"table1_iscorrect_psi1(xy, B, entry): returns 1 if Table 1 gives the correct prediction for the missing squares up to B^2 in the Psi_1 orbit for [x, y]~. If squares are ruled out by congruence, we simply return 1.");
+  addhelp(table1_bigtest,"table1_bigtest(xymax, B, {whichpsi = 1}): tests Table 1 for all 1<=x, y<=xymax and squares up to B, using the Psi orbit if whichpsi=0, and Psi_1 orbit else. Any failures of the table are output. If squares were predicted to not exist then this is a big issue! If squares were predicted to exist but did not, try increasing B for this example to see if you did not compute far enough. Returns the vector of counts of how many pairs of each line (1 to 22) were tested.");
 
 read("paper.gp");
 default(parisize, "4096M");/*Must come at the end*/

@@ -42,6 +42,11 @@ kronactioncorrect(M, xy) = {
   return(kronecker(a * x + b * y, cxpdy) * (-1)^(alpha) * mu * kronecker(c, d) * kronecker(x, y));
 }
 
+/*Tests if all the squares in the orbit of Psi*[x, y]~ are missing up to B^2. Returns 1 if they are missing, 0 else.*/
+psi_missingsquares(xy, B, entry) = {
+  for (i = 1, B, if (psi_rep(xy[1], xy[2], i^2, entry), return(0)));
+  return(1);
+}
 
 /*Tests if all the squares in the orbit of Psi_1*[x, y]~ are missing up to B^2. Returns 1 if they are missing, 0 else.*/
 psi1_missingsquares(xy, B, entry) = {
@@ -117,8 +122,18 @@ table1_prediction(xy, entry) = {
   error("Invalid inputs");
 }
 
-/*Returns 1 if Table 1 gives the correct prediction for the missing squares up to B^2 in the orbit for xy=[x, y]~.*/
-table1_iscorrect(xy, B, entry) = {
+/*Returns 1 if Table 1 gives the correct prediction for the missing squares up to B^2 in the Psi orbit for xy=[x, y]~.*/
+table1_iscorrect_psi(xy, B, entry) = {
+  my(pred);
+  pred = table1_prediction(xy, entry);
+  if (pred == -1, return(1));
+  actual = psi_missingsquares(xy, B, entry);
+  if (pred != actual, return(0));
+  return(1);
+}
+
+/*Returns 1 if Table 1 gives the correct prediction for the missing squares up to B^2 in the Psi_1 orbit for xy=[x, y]~.*/
+table1_iscorrect_psi1(xy, B, entry) = {
   my(pred);
   pred = table1_prediction(xy, entry);
   if (pred == -1, return(1));
@@ -128,15 +143,27 @@ table1_iscorrect(xy, B, entry) = {
 }
 
 /*Tests Table 1 for all 1<=x, y<=xymax and squares up to B. If B is too small this will of course fail. Returns the vector of counts of how many pairs of each line (1 to 22) were tested.*/
-table1_bigtest(xymax, B) = {
+table1_bigtest(xymax, B, whichpsi = 1) = {
   my(x, y, v);
   v = vector(22);
+  if (whichpsi,
+    for (x = 1, xymax,
+      for (y = 1, xymax,
+        if (gcd(x, y) == 1,
+          v[table1_line([x, y])]++;
+          if (table1_iscorrect_psi1([x, y], B, 1) != 1,printf("WRONG: (x, y, B, entry) = %d %d %d 1\n", x, y, B));
+          if (table1_iscorrect_psi1([x, y], B, 2) != 1,printf("WRONG: (x, y, B, entry) = %d %d %d 2\n", x, y, B));
+        );
+      );
+    );
+    return(v);
+  );
   for (x = 1, xymax,
     for (y = 1, xymax,
       if (gcd(x, y) == 1,
         v[table1_line([x, y])]++;
-        if (table1_iscorrect([x, y], B, 1) != 1,printf("WRONG: (x, y, B, entry) = %d %d %d 1\n", x, y, B));
-        if (table1_iscorrect([x, y], B, 2) != 1,printf("WRONG: (x, y, B, entry) = %d %d %d 2\n", x, y, B));
+        if (table1_iscorrect_psi([x, y], B, 1) != 1,printf("WRONG: (x, y, B, entry) = %d %d %d 1\n", x, y, B));
+        if (table1_iscorrect_psi([x, y], B, 2) != 1,printf("WRONG: (x, y, B, entry) = %d %d %d 2\n", x, y, B));
       );
     );
   );
