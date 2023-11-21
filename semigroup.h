@@ -12,7 +12,10 @@ GEN semigroup_missing_parabolic(GEN mats, GEN B, GEN start, GEN congs, long entr
 int semigroup_missinglist(GEN mats, GEN miss, GEN start, long entry);
 GEN semigroup_orbit(GEN mats, long B, GEN start);
 
-/*SECTION 3: LINEAR REGRESSION*/
+/*SECTION 3: PSI METHODS*/
+GEN psi_mats(long N);
+
+/*SECTION 4: LINEAR REGRESSION*/
 GEN OLS(GEN X, GEN y, int retrsqr);
 GEN OLS_nointercept(GEN x, GEN y, int retrsqr);
 GEN OLS_single(GEN x, GEN y, int retrsqr);

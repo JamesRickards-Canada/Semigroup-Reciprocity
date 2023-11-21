@@ -3,7 +3,7 @@ parigp_version=version();
 semigroup_library=strprintf("./libsemigroup-%d-%d.so", parigp_version[1], parigp_version[2]);
 
 /*thin.c*/
-  addhelp(semigroup,"Basic (semi)group methods:\n\tLRword, semigroup_growth, semigroup_mats, semigroup_mgens.\n\nSemigroup orbits:\n\tsemigroup_missing, semigroup_missing_parabolic, semigroup_missinglist, semigroup_orbit.\n\nLinear regression:\n\tOLS, OLS_nointercept, OLS_single, rsquared.\n\nPaper methods:\n\ttestkronaction, kronactioncorrect, psi1_missingsquares, table1_line, table1_prediction, table1_iscorrect.");
+  addhelp(semigroup,"Basic (semi)group methods:\n\tLRword, semigroup_growth, semigroup_mats, semigroup_mgens.\n\nSemigroup orbits:\n\tsemigroup_missing, semigroup_missing_parabolic, semigroup_missinglist, semigroup_orbit.\n\nPsi methods:\n\tpsi_mats.\n\nLinear regression:\n\tOLS, OLS_nointercept, OLS_single, rsquared.\n\nPaper methods:\n\ttestkronaction, kronactioncorrect, psi1_missingsquares, table1_line, table1_prediction, table1_iscorrect.");
   
   /*SECTION 1: BASIC (SEMI)GROUP METHODS*/
   install(LRword,"G",,semigroup_library);
@@ -25,7 +25,11 @@ semigroup_library=strprintf("./libsemigroup-%d-%d.so", parigp_version[1], parigp
   install(semigroup_orbit,"GLG");
   addhelp(semigroup_orbit,"semigroup_orbit(mats, B, start): for the semigroup given by mats (with all nonnegative entries and infinite order), this returns the orbit of the semigroup on the (column) vector start, where the entries are bounded by B. The output can have repeats, especially if there are relations among the matrices in mats. This is mainly useful for some initial testing, as the other semigroup_missing methods are significantly more efficient when searching for missing entries.");
 
-  /*SECTION 3: LINEAR REGRESSION*/
+  /*SECTION 3: PSI METHODS*/
+  install(psi_mats,"L");
+  addhelp(psi_mats,"psi_mats(N): Returns all the matrices in Psi with maximum entry N (Psi as defined in the paper: elements of Gamma_1(4) with nonnegative entries and Kronecker symbol of a row/column 1.");
+
+  /*SECTION 4: LINEAR REGRESSION*/
   install(OLS,"GGD1,L,");
   addhelp(OLS,"OLS(X, y, {retrsqr=1}): performs ordinary least squares regression on the data, with the inputs being the n columns of the matrix X, and the outputs being the entries of the column vector y. We include a constant term, so the first row of X must be all 1's. If retrsqr=1, returns [params, R^2], and otherwise returns params, where params is the column vector of best fit parameters.");
   install(OLS_nointercept,"GGD1,L,");

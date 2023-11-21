@@ -13,7 +13,9 @@ static void findmissing(long Bmin, long Bmax, long ***mats, long nmats, long *st
 static void missing_tofile(long blocks, unsigned long **rclass, long Bmin, long Bmax, long *start, long n, long *res, long nres, long ubits, long modulus);
 static void findmissing_parabolic(long Bmin, long Bmax, long ***mats, long ***matsinv, long nmats, long *start, long n, long *res, long nres, long modulus, long entry);
 static int findmissinglist(hashtable *hmiss, long Bmin, long Bmax, long ***mats, long ***matsinv, long nmats, long *start, long n, long entry);
-/*SECTION 3: LINEAR REGRESSION*/
+
+/*SECTION 3: PSI METHODS*/
+/*SECTION 4: LINEAR REGRESSION*/
 
 /*MAIN BODY*/
 
@@ -881,7 +883,43 @@ semigroup_orbit(GEN mats, long B, GEN start)
 }
 
 
-/*SECTION 3: LINEAR REGRESSION*/
+
+/*SECTION 3: PSI METHODS*/
+
+
+/*Returns all the matrices in Psi with maximum entry N.*/
+GEN
+psi_mats(long N)
+{
+  pari_sp av = avma;
+  long maxfound = 1000, ind = 0, a, c, d, u, v;
+  GEN mats = cgetg(maxfound + 1, t_VEC);
+  for (a = 1; a <= N; a += 4) {
+    for (c = 0; c <= N; c += 4) {
+      d = cbezout(a, c, &u, &v);/*au+cv=d*/
+      if (d != 1) continue;/*gcd not 1*/
+      if (kross(a, c) != 1) continue;/*Kronecker symbol not 1.*/
+      /*Now, [a,-v;c,u] works, but might not have the positivity requirements.*/
+      long b = -v, d = u;
+      while (b >= 0 && d >= 0) { b -= a; d -= c; }/*Shift down until we hit negatives.*/
+      while (b < 0 || d < 0) { b += a; d += c; }/*Shift back up to hit the first one with positives.*/
+      while (b <= N && d <= N) {
+        ind++;
+        if (ind > maxfound) {
+          maxfound <<= 1;
+          mats = vec_lengthen(mats, maxfound);
+        }
+        gel(mats, ind) = mkmat22s(a, b, c, d);
+        b += a;
+        d += c;
+      }
+    }
+  }
+  return gerepilecopy(av, vec_shorten(mats, ind));
+}
+
+
+/*SECTION 4: LINEAR REGRESSION*/
 
 /*Perform ordinary least squares regression. X is a matrix whose columns are the parameters, and y is a column vector of results. Must include linear term as first variable of X. The formula is B=Bhat=(X*X^T)^(-1)Xy, for the ordinary least squares regression for y=X^T*B+error (formula differs to Wikipedia due to X here being the transpose of what they define there. Returns either best fit or [best fit, R^2]*/
 GEN
