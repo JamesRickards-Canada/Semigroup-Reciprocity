@@ -4,6 +4,7 @@
 GEN LRword(GEN M);
 GEN semigroup_growth(GEN mats, long binsize, long Nbins, GEN start, long prec);
 GEN semigroup_mats(GEN mats, long N);
+GEN semigroup_mgens(GEN mats);
 
 /*SECTION 2: SEMIGROUP ORBITS*/
 GEN semigroup_missing(GEN mats, GEN B, GEN start, GEN congs, long entry);

@@ -140,6 +140,92 @@ semigroup_mats(GEN mats, long N)
   return gerepilecopy(av, vec_shorten(v, vind));
 }
 
+/*Returns 1 if all entries of the n x n ZM M are >=0*/
+INLINE int
+ZM_isnonneg(GEN M, long n)
+{
+  long i, j;
+  for (i = 1; i <= n; i++) {
+    for (j = 1; j <= n; j++) if (signe(gcoeff(M, i, j)) == -1) return 0;
+  }
+  return 1;
+}
+
+/*Returns a minimal set of generators for the semigroup spanned by the given matrices, which must all have positive entries and infinite order.*/
+GEN
+semigroup_mgens(GEN mats)
+{
+  /*Basic strategy: go one by one, testing if the element is required. We do this by repeatedly multiplying on the left/right by all other matrices until our matrix has negative entries.*/
+  pari_sp av = avma;
+  long lgmats, i, minind = 1;/*minind tracks the first surviving index.*/
+  GEN matsinv = cgetg_copy(mats, &lgmats);/*Store the matrix inverses.*/
+  if (lgmats == 1) { set_avma(av); return cgetg(1, t_VEC); }/*No input.*/
+  for (i = 1; i < lgmats; i++) gel(matsinv, i) = ZM_inv(gel(mats, i), NULL);
+  GEN nextinds = cgetg(lgmats, t_VECSMALL), previnds = cgetg(lgmats, t_VECSMALL);
+  for (i = 1; i < lgmats; i++) {
+    nextinds[i] = i + 1;/*Surviving indices point to the next surviving one, and 0 if it's gone/last one.*/
+    previnds[i] = i - 1;/*Surviving indices point to the previous surviving one, and 0 if it's gone/first one.*/
+  }
+  nextinds[lgmats - 1] = 0;
+  previnds[1] = 0;
+  hashtable all;
+  hash_init_GEN(&all, lgmats, &ZM_equal, 1);/*Stores the matrices for searching.*/
+  for (i = 1; i < lgmats; i++) hash_insert(&all, (void *)gel(mats, i), NULL);/*Insert the matrices.*/
+  long ind, n = lg(gel(mats, 1)) - 1, maxdepth = 20, dind;/*ind = index we are trying to remove; n x n matrices.*/
+  GEN depthinds = const_vecsmall(maxdepth, 0);/*Tracks the sequence of moves. Index i>0 denotes multiplying by matsinv[i] on the left, and i<0 denotes multiplying by matsinv[-i] on the right. We do 1, -1, 2, -2, ...*/
+  GEN depthseq = cgetg(maxdepth + 1, t_VEC);/*Tracks the resulting matrices.*/
+  for (ind = 1; ind < lgmats; ind++) {
+
+    dind = 2;
+    gel(depthseq, 1) = gel(mats, ind);/*Starting matrix.*/
+    depthinds[2] = 0;/*Reset*/
+    while (dind > 1) {/*Still going.*/
+      if (!depthinds[dind]) depthinds[dind] = minind;/*Just starting*/
+      else {
+        if (depthinds[dind] > 0) depthinds[dind] = -depthinds[dind];/*Swap to negative.*/
+        else depthinds[dind] = nextinds[-depthinds[dind]];/*Move to next one.*/
+      }
+      i = depthinds[dind];/*Which index to try.*/
+      if (dind == 2 && (ind == i || ind == -i)) continue;/*We are immediately multiplying by the inverse of our matrix, pointless.*/
+      if (!i) { dind--; continue; }/*Reached the end of the line here.*/
+      GEN Mold = gel(depthseq, dind - 1), Mnew;/*Previous matrix*/
+      if (i > 0) Mnew = ZM_mul(gel(matsinv, i), Mold);/*On the left*/
+      else Mnew = ZM_mul(Mold, gel(matsinv, -i));/*On the right*/
+      if (!ZM_isnonneg(Mnew, n)) continue;/*Didn't work, move on to the next one in the same level.*/
+      if (hash_search(&all, (void *)Mnew)) {/*This already exists. Delete it!*/
+        if (ind == minind) {/*Delete the first one.*/
+          minind = nextinds[minind];/*Update the minimum index.*/
+          previnds[minind] = 0;/*Now this points to 0. previnds[ind] is already 0.*/
+          nextinds[ind] = 0;/*This is also gone.*/
+          break;/*No need to go on.*/
+        }
+        long w = nextinds[ind];
+        nextinds[previnds[ind]] = w;/*Update the last index to point to the correct place.*/
+        nextinds[ind] = 0;/*Delete*/
+        if (w) previnds[w] = previnds[ind];/*If we weren't the last one, update this.*/
+        previnds[ind] = 0;/*Delete*/
+        break;/*No need to go on.*/
+      }/*Now, it did not exist. Move forward in the depth sequence.*/
+      gel(depthseq, dind) = Mnew;
+      dind++;
+      if (dind > maxdepth) {/*Make these longer.*/
+         maxdepth <<= 1;/*Double it.*/
+         vec_lengthen(depthseq, maxdepth);
+         vecsmall_lengthen(depthinds, maxdepth);
+      }
+      depthinds[dind] = 0;/*(Re)set to 0.*/
+    }
+  }
+  hash_destroy(&all);
+  GEN mg = vectrunc_init(lgmats);
+  i = minind;
+  while (i) {
+    vectrunc_append(mg, gel(mats, i));
+    i = nextinds[i];
+  }
+  return gerepilecopy(av, mg);
+}
+
 
 /*SECTION 2: SEMIGROUP ORBITS*/
 
