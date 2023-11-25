@@ -305,8 +305,8 @@ semigroup_missing(GEN mats, GEN B, GEN start, GEN congs, long entry)
   pari_free(Cstart);
   long j;
   for (i = 0; i < nmats; i++) {
-	for (j = 0; j < n; j++) pari_free(Cmats[i][j]);
-	pari_free(Cmats[i]);
+    for (j = 0; j < n; j++) pari_free(Cmats[i][j]);
+    pari_free(Cmats[i]);
   }
   pari_free(Cmats);
   set_avma(av);
@@ -569,12 +569,12 @@ semigroup_missing_parabolic(GEN mats, GEN B, GEN start, GEN congs, long entry)
   pari_free(Cstart);
   long j;
   for (i = 0; i < nmats; i++) {
-	for (j = 0; j < n; j++) {
-	  pari_free(Cmats[i][j]);
-	  pari_free(Cmatsinv[i][j]);
-	}
-	pari_free(Cmats[i]);
-	pari_free(Cmatsinv[i]);
+    for (j = 0; j < n; j++) {
+      pari_free(Cmats[i][j]);
+      pari_free(Cmatsinv[i][j]);
+    }
+    pari_free(Cmats[i]);
+    pari_free(Cmatsinv[i]);
   }
   pari_free(Cmats);
   pari_free(Cmatsinv);

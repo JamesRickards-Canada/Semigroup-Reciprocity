@@ -1,4 +1,4 @@
-/*thin.c*/
+/*semigroup.c*/
 
 /*SECTION 1: BASIC (SEMI)GROUP METHODS*/
 GEN LRword(GEN M);

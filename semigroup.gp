@@ -2,7 +2,7 @@ print("\n\nType '?semigroup' for help.\n\n");
 parigp_version=version();
 semigroup_library=strprintf("./libsemigroup-%d-%d.so", parigp_version[1], parigp_version[2]);
 
-/*thin.c*/
+/*semigroup.c*/
   addhelp(semigroup,"Basic (semi)group methods:\n\tLRword, semigroup_growth, semigroup_mats, semigroup_mgens.\n\nSemigroup orbits:\n\tsemigroup_missing, semigroup_missing_parabolic, semigroup_missinglist, semigroup_orbit.\n\nPsi methods:\n\tpsi_mats, psi_rep.\n\nLinear regression:\n\tOLS, OLS_nointercept, OLS_single, rsquared.\n\nPaper methods:\n\ttestkronaction, kronactioncorrect, psi_missingsquares, psi1_missingsquares, table1_line, table1_prediction, table1_iscorrect_psi, table1_iscorrect_psi1, table1_bigtest.");
   
   /*SECTION 1: BASIC (SEMI)GROUP METHODS*/
