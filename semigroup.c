@@ -864,6 +864,7 @@ semigroup_orbit(GEN mats, long B, GEN start)
       continue;
     }
     GEN M = ZM_ZC_mul(gel(mats, cind), gel(depthseq, ind - 1));
+    if (ZV_equal(M, gel(depthseq, ind - 1))) continue;/*We went nowhere, i.e. had an eigenvector with eigenvalue 1. Move on! This makes it 10% slower, but now doesn't break on [0,1]~ or [1,0]~ and was a much more simple fix.*/
     long maxM = ZC_largest_s(M);
     if (maxM > B) continue;/*Too big! Go back.*/
     vind++;
