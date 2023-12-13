@@ -7,8 +7,8 @@ GEN semigroup_mats(GEN mats, long N);
 GEN semigroup_mgens(GEN mats);
 
 /*SECTION 2: SEMIGROUP ORBITS*/
-GEN semigroup_missing(GEN mats, GEN B, GEN start, GEN congs, long entry);
-GEN semigroup_missing_parabolic(GEN mats, GEN B, GEN start, GEN congs, long entry);
+GEN semigroup_missing(GEN mats, GEN B, GEN start, GEN congs, long entry, long load);
+GEN semigroup_missing_parabolic(GEN mats, GEN B, GEN start, GEN congs, long entry, long load);
 int semigroup_missinglist(GEN mats, GEN miss, GEN start, long entry);
 GEN semigroup_orbit(GEN mats, long B, GEN start);
 

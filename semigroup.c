@@ -266,7 +266,7 @@ ZM_to_Cmatrix(GEN M)
 
 /*Runs C code to find the missing positive entries up to the given bound, then saves them to a file. Must also supply the congruence conditions.*/
 GEN
-semigroup_missing(GEN mats, GEN B, GEN start, GEN congs, long entry)
+semigroup_missing(GEN mats, GEN B, GEN start, GEN congs, long entry, long load)
 {
   pari_sp av = avma;
   long Bmin = 0, Bmax = 0, t = typ(B);
@@ -307,11 +307,12 @@ semigroup_missing(GEN mats, GEN B, GEN start, GEN congs, long entry)
     pari_free(Cmats[i]);
   }
   pari_free(Cmats);
+  if (!load) return gc_const(av, gen_0);/*Do not load*/
+  char *fname = stack_sprintf("missing/%Pd", gel(start, 1));
+  for (i = 2; i <= n; i++) fname = stack_sprintf("%s_%Pd", fname, gel(start, i));
+  fname = stack_sprintf("%s_%ld-to-%ld.dat", fname, Bmin, Bmax);
   set_avma(av);
-  /*
-  Now load them maybe!!
-  */
-  return gen_0;
+  return gerepileupto(av, gel(gp_readvec_file(fname), 1));/*Load them up!*/
 }
 
 /*Updates rclass with the new value. Assumes we are at most Bmax*/
@@ -528,7 +529,7 @@ missing_tofile(long blocks, unsigned long **rclass, long Bmin, long Bmax, long *
 
 /*semigroup_missing, except we store the sequence of swaps differently. This is slightly slower but suggested if a matrix is parabolic, as storing the whole depth sequence and swaps is extremely costly in terms of memory when B is large.*/
 GEN
-semigroup_missing_parabolic(GEN mats, GEN B, GEN start, GEN congs, long entry)
+semigroup_missing_parabolic(GEN mats, GEN B, GEN start, GEN congs, long entry, long load)
 {
   pari_sp av = avma;
   long Bmin = 0, Bmax = 0, t = typ(B);
@@ -578,11 +579,12 @@ semigroup_missing_parabolic(GEN mats, GEN B, GEN start, GEN congs, long entry)
   }
   pari_free(Cmats);
   pari_free(Cmatsinv);
+  if (!load) return gc_const(av, gen_0);/*Do not load*/
+  char *fname = stack_sprintf("missing/%Pd", gel(start, 1));
+  for (i = 2; i <= n; i++) fname = stack_sprintf("%s_%Pd", fname, gel(start, i));
+  fname = stack_sprintf("%s_%ld-to-%ld.dat", fname, Bmin, Bmax);
   set_avma(av);
-  /*
-  Now load them maybe!!
-  */
-  return gen_0;
+  return gerepileupto(av, gel(gp_readvec_file(fname), 1));/*Load them up!*/
 }
 
 /*executes semigroup_missing_par*/
