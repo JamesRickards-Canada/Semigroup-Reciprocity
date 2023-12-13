@@ -70,6 +70,7 @@ semigroup_growth(GEN mats, long binsize, long Nbins, GEN start, long prec)
   pari_sp av = avma;
   if (!start) start = mkcol2s(1, 1);
   if (typ(start) == t_VEC) start = gtocol(start);
+  else if (typ(start) == t_MAT) start = gel(start, 1);/*Ensure it is a column vector.*/
   GEN v = semigroup_mats(mats, binsize * Nbins);
   long lv, i;
   GEN images = cgetg_copy(v, &lv);
@@ -283,6 +284,8 @@ semigroup_missing(GEN mats, GEN B, GEN start, GEN congs, long entry)
     Bmax = B[2];
   }
   else pari_err_TYPE("B must be a positive integer or a range of positive integers", B);
+  if (typ(start) == t_VEC) start = gtocol(start);
+  else if (typ(start) == t_MAT) start = gel(start, 1);/*Ensure it is a column vector.*/
   if (Bmin <= 0) Bmin = 1;
   long n = lg(start) - 1;
   if (entry < 0 || entry > n) pari_err_TYPE("entry must be an index from 1 to n, the dimension of the vectors computed", stoi(entry));
@@ -543,6 +546,8 @@ semigroup_missing_parabolic(GEN mats, GEN B, GEN start, GEN congs, long entry)
     Bmax = B[2];
   }
   else pari_err_TYPE("B must be a positive integer or a range of positive integers", B);
+  if (typ(start) == t_VEC) start = gtocol(start);
+  else if (typ(start) == t_MAT) start = gel(start, 1);/*Ensure it is a column vector.*/
   if (Bmin <= 0) Bmin = 1;
   long n = lg(start) - 1;
   if (entry < 0 || entry > n) pari_err_TYPE("entry must be an index from 1 to n, the dimension of the vectors computed", stoi(entry));
@@ -717,6 +722,8 @@ semigroup_missinglist(GEN mats, GEN miss, GEN start, long entry)
 {
   pari_sp av = avma;
   if (!RgV_is_ZVpos(miss)) pari_err_TYPE("miss must be a sorted vector of positive integers.", miss);
+  if (typ(start) == t_VEC) start = gtocol(start);
+  else if (typ(start) == t_MAT) start = gel(start, 1);/*Ensure it is a column vector.*/
   long lmiss = lg(miss);
   if (lmiss == 1) return 1;/*Nothing to miss!*/
   long Bmin = itos(gel(miss, 1)), Bmax = itos(gel(miss, lmiss - 1));
@@ -840,7 +847,8 @@ GEN
 semigroup_orbit(GEN mats, long B, GEN start)
 {
   pari_sp av = avma;
-  start = ZC_copy(start);/*Ensure it is a column vector.*/
+  if (typ(start) == t_VEC) start = gtocol(start);
+  else if (typ(start) == t_MAT) start = gel(start, 1);/*Ensure it is a column vector.*/
   long lmats = lg(mats);
   long maxdepth = 100, maxfound = 10000, vind = 0;
   GEN v = cgetg(maxfound + 1, t_VEC);
