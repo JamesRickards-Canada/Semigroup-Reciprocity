@@ -157,7 +157,7 @@ ZM_isnonneg(GEN M, long n)
 GEN
 semigroup_mgens(GEN mats)
 {
-  /*Basic strategy: go one by one, testing if the element is required. We do this by repeatedly multiplying on the left/right by all other matrices until our matrix has negative entries.*/
+  /*Basic strategy: go one by one, testing if the element is required. We do this by repeatedly multiplying on the left by all other matrices until our matrix has negative entries, checking if we ever find another input matrix*/
   pari_sp av = avma, av1;
   long lgmats, i, minind = 1;/*minind tracks the first surviving index.*/
   GEN matsinv = cgetg_copy(mats, &lgmats);/*Store the matrix inverses.*/
@@ -169,13 +169,12 @@ semigroup_mgens(GEN mats)
     previnds[i] = i - 1;/*Surviving indices point to the previous surviving one, and 0 if it's gone/first one.*/
   }
   nextinds[lgmats - 1] = 0;
-  previnds[1] = 0;
   hashtable all;
   hash_init_GEN(&all, lgmats, &ZM_equal, 1);/*Stores the matrices for searching.*/
   long idind = 0;
   for (i = 1; i < lgmats; i++) {
     if (!gequal1(gel(mats, i))) {
-      hash_insert(&all, (void *)gel(mats, i), NULL);/*Insert the non-identity matrix.*/
+      hash_insert(&all, (void *)gel(mats, i), NULL);/*Insert the non-identity matrices.*/
       continue;
     }
     idind = i;/*Index of the identity matrix.*/
@@ -193,10 +192,10 @@ semigroup_mgens(GEN mats)
   }
   av1 = avma;
   long ind, n = lg(gel(mats, 1)) - 1, maxdepth = 20, dind;/*ind = index we are trying to remove; n x n matrices.*/
-  GEN depthinds = const_vecsmall(maxdepth, 0);/*Tracks the sequence of moves. Index i>0 denotes multiplying by matsinv[i] on the left, and i<0 denotes multiplying by matsinv[-i] on the right. We do 1, -1, 2, -2, ...*/
+  GEN depthinds = const_vecsmall(maxdepth, 0);/*Tracks the sequence of moves. Index i>0 denotes multiplying by matsinv[i] on the left. We do 1, 2, 3,...*/
   GEN depthseq = cgetg(maxdepth + 1, t_VEC);/*Tracks the resulting matrices.*/
-  for (ind = 1; ind < lgmats; ind++) {
-    if (gc_needed(av1, 2)) {/*GARBAGE DAY!*/
+  for (ind = 1; ind < lgmats; ind++) {/*We run through the matrices in order, testing if they are necessary or not.*/
+    if (gc_needed(av1, 2)) {/*GARBAGE DAY! All we need to save between runs is unchanged after av1, or is in Vecsmalls created before av1.*/
       set_avma(av1);
       depthinds = const_vecsmall(maxdepth, 0);
       depthseq = cgetg(maxdepth + 1, t_VEC);
@@ -206,17 +205,13 @@ semigroup_mgens(GEN mats)
     gel(depthseq, 1) = gel(mats, ind);/*Starting matrix.*/
     depthinds[2] = 0;/*Reset*/
     while (dind > 1) {/*Still going.*/
-      if (!depthinds[dind]) depthinds[dind] = minind;/*Just starting*/
-      else {
-        if (depthinds[dind] > 0) depthinds[dind] = -depthinds[dind];/*Swap to negative.*/
-        else depthinds[dind] = nextinds[-depthinds[dind]];/*Move to next one.*/
-      }
+      if (!depthinds[dind]) depthinds[dind] = minind;/*Just starting! First matrix we must multiply by the inverse of.*/
+      else depthinds[dind] = nextinds[depthinds[dind]];/*Move to next one.*/
       i = depthinds[dind];/*Which index to try.*/
-      if (dind == 2 && (ind == i || ind == -i)) continue;/*We are immediately multiplying by the inverse of our matrix, pointless.*/
+      if (dind == 2 && ind == i) continue;/*We are immediately multiplying by the inverse of our matrix, pointless.*/
       if (!i) { dind--; continue; }/*Reached the end of the line here.*/
-      GEN Mold = gel(depthseq, dind - 1), Mnew;/*Previous matrix*/
-      if (i > 0) Mnew = ZM_mul(gel(matsinv, i), Mold);/*On the left*/
-      else Mnew = ZM_mul(Mold, gel(matsinv, -i));/*On the right*/
+      GEN Mold = gel(depthseq, dind - 1);/*Previous matrix*/
+      GEN Mnew = ZM_mul(gel(matsinv, i), Mold);/*On the left*/
       if (!ZM_isnonneg(Mnew, n)) continue;/*Didn't work, move on to the next one in the same level.*/
       if (hash_search(&all, (void *)Mnew)) {/*This already exists. Delete it!*/
         if (ind == minind) {/*Delete the first one.*/
