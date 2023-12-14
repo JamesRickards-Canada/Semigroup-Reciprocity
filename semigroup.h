@@ -16,7 +16,11 @@ GEN semigroup_orbit(GEN mats, long B, GEN start);
 GEN psi_mats(long N);
 int psi_rep(long x, long y, long n, long entry);
 
-/*SECTION 4: LINEAR REGRESSION*/
+/*SECTION 4: CONTINUED FRACTIONS*/
+GEN contfraceven(GEN q);
+GEN contfractoQ(GEN v);
+
+/*SECTION 5: LINEAR REGRESSION*/
 GEN OLS(GEN X, GEN y, int retrsqr);
 GEN OLS_nointercept(GEN x, GEN y, int retrsqr);
 GEN OLS_single(GEN x, GEN y, int retrsqr);

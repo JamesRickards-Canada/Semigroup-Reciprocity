@@ -15,6 +15,7 @@ static void findmissing_parabolic(long Bmin, long Bmax, long ***mats, long ***ma
 static int findmissinglist(hashtable *hmiss, long Bmin, long Bmax, long ***mats, long ***matsinv, long nmats, long *start, long n, long entry);
 
 /*SECTION 3: PSI METHODS*/
+/*SECTION 4: CONTINUED FRACTIONS*/
 /*SECTION 4: LINEAR REGRESSION*/
 
 /*MAIN BODY*/
@@ -1022,7 +1023,38 @@ psi_rep(long x, long y, long n, long entry)
 }
 
 
-/*SECTION 4: LINEAR REGRESSION*/
+/*SECTION 4: CONTINUED FRACTIONS*/
+
+/*Returns the even length continued fraction of q.*/
+GEN
+contfraceven(GEN q)
+{
+  pari_sp av = avma;
+  long t = typ(q);
+  if (t == t_INT) return gerepilecopy(av, mkvec2(subis(q, 1), gen_1));
+  if (t != t_FRAC) pari_err_TYPE("q must be a rational number", q);
+  GEN c = gcf(q);
+  long lenc = lg(c) - 1;
+  if (lenc % 2 == 0) return c;/*Already good!*/
+  c = vec_append(c, gen_1);
+  gel(c, lenc) = subis(gel(c, lenc), 1);/*[...,an] -> [...,an - 1, 1]*/
+  return gerepilecopy(av, c);
+}
+
+/*Given an even length continued fraction, returns the rational number it corresponds to.*/
+GEN
+contfractoQ(GEN v)
+{
+  pari_sp av = avma;
+  if (typ(v) != t_VEC) pari_err_TYPE("v must be a vector of integers", v);
+  long i, lenv = lg(v) - 1;
+  GEN x = gel(v, lenv);
+  for (i = lenv - 1; i >= 1; i--) x = gadd(ginv(x), gel(v, i));
+  return gerepileupto(av, x);
+}
+
+
+/*SECTION 5: LINEAR REGRESSION*/
 
 /*Perform ordinary least squares regression. X is a matrix whose columns are the parameters, and y is a column vector of results. Must include linear term as first variable of X. The formula is B=Bhat=(X*X^T)^(-1)Xy, for the ordinary least squares regression for y=X^T*B+error (formula differs to Wikipedia due to X here being the transpose of what they define there. Returns either best fit or [best fit, R^2]*/
 GEN
