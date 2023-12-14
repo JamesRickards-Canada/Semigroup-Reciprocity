@@ -1,6 +1,6 @@
 # Semigroup-Reciprocity
 
-This repository is supplementary to the paper "Reciprocity obstructions in semigroup orbits in $\text{SL}(2, \mathbb{Z})$, with applications to Zaremba's conjecture", by James Rickards and Katherine E. Stange.
+This repository is supplementary to the paper "Reciprocity obstructions in semigroup orbits in $\text{SL}(2, \mathbb{Z})$, with applications to Zaremba's conjecture", by James Rickards and Katherine E. Stange (preprint forthcoming).
 
 The goal of the package is to efficiently compute data about certain orbits of semigroups. Certain methods have been optimized to be able to compute extremely large orbits. The file "paper.gp" is aimed at verifying and recreating various claims in the paper.
 
