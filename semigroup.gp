@@ -50,6 +50,15 @@ semigroup_library=strprintf("./libsemigroup-%d-%d.so", parigp_version[1], parigp
   addhelp(rsquared,"rsquared(X, y, fit): returns the R^2 value for the proposed linear regression, where the input is X, output is y, and fit is the proposed parameters.");
 
 /*paper.gp*/
+
+/*SECTION 1: TESTING*/
+  addhelp(test_evencontfrac,"test_evencontfrac(n, B): tests that the even continued fraction does correspond to orbits of [1,0]~ as described at the start of section 2. We pick random positive rational numbers x/y with 1<=x,y<=B, and do this test n times.");
+
+/*SECTION 2: SUPPORTING METHODS*/
+  addhelp(psi_random,"psi_random(n): returns a random element of Psi where the size of the coefficients are bounded by n (not necessarily uniformly, but should be reasonably close).");
+
+
+/*ADD IN THIS TO THE MAIN HELP ADDHELP LINE*/
   addhelp(testkronaction,"testkronaction(B, n, xymin, xymax): tests Proposition 3.2 by calling kronactioncorrect on n random matrices in SL(2, Z)^{>=0} with entries bounded by B. The values of x, y tried are all valid pairs with xymin<=x, y<=xymax. If the formula fails, we print the failing inputs, and raise an error. If no error occurs, all tests passed successfully.");
   addhelp(kronactioncorrect,"kronactioncorrect(M, xy): tests Proposition 3.2: M=[a, b;c, d] in SL(2, Z)^{>=0} a, b, c, d >= 0, xy=[x, y] with x, y>=0 coprime, gcd(x, d)=1, this proposition gives a formula for kron(ax+by/cx+dy). This function returns 1 if and only if the formula is correct for the given inputs. If the method returns anything other than 1, then the formula has failed.");
   addhelp(psi_missingsquares,"psi_missingsquares(xy, B, entry): tests if all the squares in the orbit of Psi*xy are missing up to B^2. Returns 1 if they are missing, 0 else.");

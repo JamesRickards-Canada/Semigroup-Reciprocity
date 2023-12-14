@@ -1,4 +1,55 @@
-/*Various methods to test results in the paper.*/
+\\/*Various methods to test results in the paper.*/
+
+/*SECTION 1: TESTING*/
+
+/*Tests that the even continued fraction does correspond to orbits of [1,0]~ as described at the start of section 2. We pick random positive rational numbers x/y with 1<=x,y<=B, and do this test n times.*/
+test_evencontfrac(n, B) = {
+  my(x, c, M);
+  printf("Testing %d random positive rational numbers with num/denom bounded by %d\n", n ,B);
+  for (i = 1, n,
+    x = (random(B) + 1)/(random(B) + 1);
+    c = contfraceven(x);
+    M = contfractoword(c);
+    if (M[1, 1] != numerator(x) || M[2,1] != denominator(x), printf("Test failed with x=%Ps\n", x);break);
+  );
+  printf("All tests passed.\n");
+}
+
+
+
+/*SECTION 2: SUPPORTING METHODS*/
+
+/*Returns a random element of Psi where the size of the coefficients are bounded by n (not necessarily uniformly, but should be reasonably close). Note that we use the convention of kronecker(a, c)=1, but by Lemma 3.1 (which we also test), this is equivalent.*/
+psi_random(n) = {
+  my(bd1, bd2, a, b, c, d, bd, s);
+  bd1 = floor((n - 1) >> 2);
+  bd2 = floor(n >> 2);
+  while (1 == 1,
+    a = 4 * random(bd1) + 1;
+    c = 4 * random(bd2);
+    while (kronecker(a, c) != 1,/*Pick random (a, c)'s until the Kroneckery symbol is 1*/
+      a = 4 * random(bd1) + 1;
+      c = 4 * random(bd2);
+    );
+    if (c == 0, return([1, random(n + 1);0, 1]));
+    d = lift(1 / Mod(a, c));
+    b = (a * d - 1) / c;/*Solve for minimal nonnegative b, d*/
+    bd = floor((n - b) / a);
+    bd = min(bd, floor((n - d) / c));/*See if we can shift them higher; pick a random shift. If either b,d>n, then we just redo it all.*/
+    if (bd >= 0,/*All coeffs can be made to be at most n*/
+      s = random(bd + 1);
+      b = b + a * s;
+      d = d + c * s;
+      return([a, b;c, d]);
+    );
+  );
+}
+
+
+
+
+
+
 
 /*Tests Proposition 3.2 by calling kronactioncorrect on n random matrices in SL(2, Z)^{>=0} with entries bounded by B. The values of x, y tried are all valid pairs with xymin<=x, y<=xymax*/
 testkronaction(B, n, xymin, xymax) = {
