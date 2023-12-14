@@ -19,6 +19,7 @@ int psi_rep(long x, long y, long n, long entry);
 /*SECTION 4: CONTINUED FRACTIONS*/
 GEN contfraceven(GEN q);
 GEN contfractoQ(GEN v);
+GEN contfractoword(GEN v);
 
 /*SECTION 5: LINEAR REGRESSION*/
 GEN OLS(GEN X, GEN y, int retrsqr);

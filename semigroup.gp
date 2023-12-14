@@ -3,7 +3,7 @@ parigp_version=version();
 semigroup_library=strprintf("./libsemigroup-%d-%d.so", parigp_version[1], parigp_version[2]);
 
 /*semigroup.c*/
-  addhelp(semigroup,"Basic (semi)group methods:\n\tLRword, semigroup_growth, semigroup_mats, semigroup_mgens.\n\nSemigroup orbits:\n\tsemigroup_missing, semigroup_missing_parabolic, semigroup_missinglist, semigroup_orbit.\n\nPsi methods:\n\tpsi_mats, psi_rep.\n\nContinued fractions:\n\tcontfraceven, contfractoQ.\n\mn\n\nLinear regression:\n\tOLS, OLS_nointercept, OLS_single, rsquared.\n\nPaper methods:\n\ttestkronaction, kronactioncorrect, psi_missingsquares, psi1_missingsquares, table1_line, table1_prediction, table1_iscorrect_psi, table1_iscorrect_psi1, table1_bigtest.");
+  addhelp(semigroup,"Basic (semi)group methods:\n\tLRword, semigroup_growth, semigroup_mats, semigroup_mgens.\n\nSemigroup orbits:\n\tsemigroup_missing, semigroup_missing_parabolic, semigroup_missinglist, semigroup_orbit.\n\nPsi methods:\n\tpsi_mats, psi_rep.\n\nContinued fractions:\n\tcontfraceven, contfractoQ, contfractoword.\n\mn\n\nLinear regression:\n\tOLS, OLS_nointercept, OLS_single, rsquared.\n\nPaper methods:\n\ttestkronaction, kronactioncorrect, psi_missingsquares, psi1_missingsquares, table1_line, table1_prediction, table1_iscorrect_psi, table1_iscorrect_psi1, table1_bigtest.");
   
 /*SECTION 1: BASIC (SEMI)GROUP METHODS*/
   install(LRword,"G",,semigroup_library);
@@ -36,7 +36,8 @@ semigroup_library=strprintf("./libsemigroup-%d-%d.so", parigp_version[1], parigp
   addhelp(contfraceven,"contfraceven(q): returns the (unique) even length continued fraction representation of the rational number q.");
   install(contfractoQ,"G");
   addhelp(contfractoQ,"contfractoQ(v): returns the rational number corresponding to the continued fraction v.");
-
+  install(contfractoword,"G");
+  addhelp(contfractoword,"contfractoword(v): given an even length continued fraction [a0;a1, a2, ..., a(2n-1)] with a0>=0, this returns the corresponding word W in SL(2, Z), i.e. W=L^a0*R^a1*...*L^a(2n-2)*R^a(2n-1), where L=[1,1;0,1] and R=[1,0;1,1]. In particular, W[1,0]~=[x,y], where contfraceven(x/y)=v. If v has odd length, we convert it to having even length.");
 
 /*SECTION 5: LINEAR REGRESSION*/
   install(OLS,"GGD1,L,");

@@ -1053,6 +1053,32 @@ contfractoQ(GEN v)
   return gerepileupto(av, x);
 }
 
+/*Given an even length continued fraction (we convert it if required) for a positive rational number, this returns the corresponding word in SL(2, Z)^{>=0}.*/
+GEN
+contfractoword(GEN v)
+{
+  pari_sp av = avma;
+  long lenv = lg(v) - 1;
+  if (lenv % 2 == 1) {/*Convert to even*/
+    v = vec_append(v, gen_1);
+    gel(v, lenv) = subis(gel(v, lenv), 1);/*[...,an] -> [...,an - 1, 1]*/
+    lenv++;
+  }
+  GEN M = matid(2);
+  long i = 1;
+  while (i <= lenv) {
+    GEN x = gel(v, i);/*L^a_i on the right*/
+    gcoeff(M, 1, 2) = addii(mulii(gcoeff(M, 1, 1), x), gcoeff(M, 1, 2));/*b -> ax+b*/
+    gcoeff(M, 2, 2) = addii(mulii(gcoeff(M, 2, 1), x), gcoeff(M, 2, 2));/*d -> cx+d*/
+    i++;
+    x = gel(v, i);/*R^a_i on the right*/
+    gcoeff(M, 1, 1) = addii(gcoeff(M, 1, 1), mulii(gcoeff(M, 1, 2), x));/*a -> a+bx*/
+    gcoeff(M, 2, 1) = addii(gcoeff(M, 2, 1), mulii(gcoeff(M, 2, 2), x));/*c -> c+dx*/
+    i++;
+  }
+  return gerepilecopy(av, M);
+}
+
 
 /*SECTION 5: LINEAR REGRESSION*/
 
