@@ -16,7 +16,7 @@ static int findmissinglist(hashtable *hmiss, long Bmin, long Bmax, long ***mats,
 
 /*SECTION 3: PSI METHODS*/
 /*SECTION 4: CONTINUED FRACTIONS*/
-/*SECTION 4: LINEAR REGRESSION*/
+/*SECTION 5: LINEAR REGRESSION*/
 
 /*MAIN BODY*/
 

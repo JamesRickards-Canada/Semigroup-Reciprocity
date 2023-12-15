@@ -21,15 +21,15 @@ runalltests() = {
   test_kronaction_many(2000, 3000, 1, 70);
   printf("\n\n\nNext, let's check that Psi is a semigroup.\n");
   test_psisemigroup(20000, 3000);
-  printf("\n\n\nNext, let's check that Psi gives a correct and complete list of reciprocity obstructions for Psi.\n");
+  printf("\n\n\nNext, let's check that Psi gives a correct and complete list of reciprocity obstructions for Psi, i.e. Theorem 2.6.\n");
   test_table1_psi_many();
-  printf("\n\n\nNext, let's check that Psi gives a correct and complete list of reciprocity obstructions for Psi_1.\n");
+  printf("\n\n\nNext, let's check that Psi gives a correct and complete list of reciprocity obstructions for Psi_1, i.e. Conjecture 2.14.\n");
   test_table1_psi1_many();
   printf("\n\n\nNext, let's check that the matrices M_k must appear in any set of generators for Psi.\n");
   test_psioogens(60);
   printf("\n\n\nNext, let's check that the numerators in the orbit of Psi*[2, 3]~ are as claimed in Theorem 2.7.\n");
   test_psi_23orbit();
-  printf("\n\n\nFinally, let's check he numerators in the orbit of Psi_1*[2, 3]~ up to 10^7 to get Conjecture 2.13. This may take half a minute.\n");
+  printf("\n\n\nFinally, let's check he numerators in the orbit of Psi_1*[2, 3]~ up to 10^7 to get Conjecture 2.15. This may take half a minute.\n");
   test_psi1_23orbit();
   printf("\n\n\nAll standard tests complete!! No critical errors found.\n");
 }
