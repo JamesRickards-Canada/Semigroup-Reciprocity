@@ -12,10 +12,23 @@
 
 /*Run tests for all of the testing methods we wrote.*/
 runalltests() = {
+  printf("Let's computationally tests various claims made in the paper.\n\n\n");
   printf("To begin, let's test that even continued fractions correspond to LR words.\n\n\n");
   test_evencontfrac(20000, 3000);
   printf("\n\nNext, let's check Lemma 3.1 that the Kronecker symbol of any row or column of an element of Gamma_1(4)^{>=0} is constant.\n\n\n");
   test_gamma14geq0_kronequal(20000, 3000);
+  printf("\n\nNext, let's check Lemma 3.4 about the formula for kronecker(ax+by, cx+dy) in terms of kronecker(x, y) when [a,b;c,d] is a matrix in SL(2, Z)^{>=0}.\n\n\n");
+  test_kronaction_many(2000, 3000, 1, 70);
+  printf("\n\nNext, let's check that Psi is a semigroup.\n\n\n");
+  test_psisemigroup(20000, 3000);
+  printf("\n\nNext, let's check that Psi gives a correct and complete list of reciprocity obstructions for Psi.\n\n\n");
+  test_table1_psi_many();
+  printf("\n\nNext, let's check that Psi gives a correct and complete list of reciprocity obstructions for Psi_1.\n\n\n");
+  test_table1_psi1_many();
+  printf("\n\nNext, let's check that the matrices M_k must appear in any set of generators for Psi.\n\n\n");
+  test_psioogens(60);
+  printf("\n\nFinally, let's check that the numerators in the orbit of Psi*[2, 3]~ are as claimed in Theorem 2.7.\n\n\n");
+  test_Psi23orbit();
 }
 
 /*Tests that the even continued fraction does correspond to orbits of [1,0]~ as described at the start of section 2. We pick random positive rational numbers x/y with 1<=x,y<=B, and do this test n times.*/
@@ -83,6 +96,23 @@ test_kronaction_many(n, B, xymin, xymax) = {
       );
     );
     if (i % 500 == 0, printf("%d matrices tried\n", i));
+  );
+  printf("All tests passed.\n");
+}
+
+/*Tests that the matrices M_k=[12k+1,4k;12k+4,4k+1] are all in a minimal generating set up to k=n.*/
+test_psioogens(n) = {
+  my(v, mv, found, M);
+  printf("Testing that the matrices M_k=[12k+1,4k;12k+4,4k+1] for 1<=k<=%d cannot be expressed as non-trivial words in Psi.\n", n);
+  v = psi_mats(12 * n + 4);
+  printf("%d elements of Psi found with coefficients bounded by %d\n", #v, 12 * n + 4);
+  mv = semigroup_mgens(v);
+  printf("Minimal generating set has %d elements\n", #mv);
+  for (i = 1, n,
+    found = 0;
+    M = [12 * i + 1, 4 * i; 12 * i + 4, 4 * i + 1];
+    for (j = 1, #mv, if (mv[j] == M, found = 1; break; ));
+    if (!found, printf("MATRIX NOT FOUND: %Ps\n", M);error("Not a minimal generator."));
   );
   printf("All tests passed.\n");
 }
