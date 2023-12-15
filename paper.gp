@@ -29,6 +29,8 @@ runalltests() = {
   test_psioogens(60);
   printf("\n\n\nNext, let's check that the numerators in the orbit of Psi*[2, 3]~ are as claimed in Theorem 2.7.\n");
   test_psi_23orbit();
+  printf("\n\n\nNext, let's estimate the Hausdorff dimension of Psi_1.\n");
+  test_psi1_hdim();
   printf("\n\n\nFinally, let's check he numerators in the orbit of Psi_1*[2, 3]~ up to 10^7 to get Conjecture 2.15. This may take half a minute.\n");
   test_psi1_23orbit();
   printf("\n\n\nAll standard tests complete!! No critical errors found.\n");
@@ -184,6 +186,16 @@ test_psi1_23orbit(n = 10000000) = {
   printf("\nAll numbers searched!\n");
 }
 
+/*Estimates the Hausdorff dimension of Psi_1.*/
+test_psi1_hdim() = {
+  my(M, binsize, Nbins, v);
+  binsize = 100;
+  Nbins = 500;
+  printf("Estimating the Hausdorff dimension of Psi_1 by running a least squares regression on the orbit of [1, 1]~ up to %d to estimate the critical exponent:\n", binsize * Nbins);
+  M = [[1, 1;0, 1], [1, 0;4, 1]];
+  v = semigroup_growth(M, binsize, Nbins, [1, 1]);
+  printf("Hausdorff dimension: %.5f, R^2: %.5f\n", v[2]/2, v[3]);
+}
 
 /*Returns 1 if Table 1 gives the correct prediction for the missing squares up to B^2 in the Psi_1 orbit for xy=[x, y]~.*/
 test_table1_psi1(xy, B, entry) = {
