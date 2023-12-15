@@ -1,26 +1,57 @@
-/*Various methods to test results in the paper.*/
+/*Methods related to the paper, divided into three sections:
+
+1. TESTING: tests the correctness of certain claims by computationally checking them in a number of random cases.
+
+2. SUPPLEMENTARY COMPUTATIONS: Recreate computations claimed int he paper.
+
+3. SUPPORTING METHODS: self explanatory
+*/
 
 /*SECTION 1: TESTING*/
 
 /*Tests that the even continued fraction does correspond to orbits of [1,0]~ as described at the start of section 2. We pick random positive rational numbers x/y with 1<=x,y<=B, and do this test n times.*/
 test_evencontfrac(n, B) = {
-  my (x, c, M);
+  my(x, c, M);
   printf("Testing %d random positive rational numbers with num/denom bounded by %d\n", n ,B);
   for (i = 1, n,
     x = (random(B) + 1)/(random(B) + 1);
     c = contfraceven(x);
     M = contfractoword(c);
-    if (M[1, 1] != numerator(x) || M[2,1] != denominator(x), printf("Test failed with x=%Ps\n", x);break);
+    if (M[1, 1] != numerator(x) || M[2,1] != denominator(x), printf("Test failed with x=%Ps\n", x);error("Failed test."));
+  );
+  printf("All tests passed.\n");
+}
+
+/*We generate pairs of elements of Psi with coefficients of size at most B, and check that their product still lies in Psi.*/
+test_psisemigroup(n, B) = {
+  my(M, N, P);
+  printf("Testing %d random pairs of elements of Psi:\n", n);
+  for (i = 1, n,
+    M = psi_random(B);
+    N = psi_random(B);
+    P = M * N;
+    if (kronecker(P[1, 1], P[1, 2]) != 1, printf("Test failed with %Ps and %Ps\n", M, N); error("Test failed."));
   );
   printf("All tests passed.\n");
 }
 
 
-/*SECTION 2: SUPPORTING METHODS*/
+/*SECTION 2: SUPPLEMENTARY COMPUTATIONS*/
+
+/*Prints the missing numerators in the orbit, defaulting to the value we need to check it up to.*/
+supp_Psi23orbit(n = 109120000) = {
+  printf("Finding the numerators of Psi[2, 3]~ between 1 and %d, printing the non-squares that are missing:\n", n);
+  for (i = 1, n,
+    if (!issquare(i) && !psi_rep(2, 3, i, 1), printf("%d\n", i));/*Missing non-square*/
+  );
+  printf("All numbers searched!\n");
+}
+
+/*SECTION 3: SUPPORTING METHODS*/
 
 /*Returns a random element of Gamma_1(4)^{>=0}, where the size of the coefficients are bounded by n (not necessarily uniformly, but should be reasonably close).*/
 gamma14geq0_random(n) = {
-  my (bd1, bd2, a, b, c, d, bd, s);
+  my(bd1, bd2, a, b, c, d, bd, s);
   bd1 = floor((n - 1) >> 2);
   bd2 = floor(n >> 2);
   while (1 == 1,
@@ -46,7 +77,7 @@ gamma14geq0_random(n) = {
 
 /*Returns a random element of Psi where the size of the coefficients are bounded by n (not necessarily uniformly, but should be reasonably close). Note that we use the convention of kronecker(a, c)=1, but by Lemma 3.1 (which we also test), this is equivalent.*/
 psi_random(n) = {
-  my (bd1, bd2, a, b, c, d, bd, s);
+  my(bd1, bd2, a, b, c, d, bd, s);
   bd1 = floor((n - 1) >> 2);
   bd2 = floor(n >> 2);
   while (1 == 1,
@@ -72,7 +103,7 @@ psi_random(n) = {
 
 /*Returns a random element of SL(2, Z)^{>=0}, where the size of the coefficients are bounded by n (not necessarily uniformly, but should be reasonably close).*/
 sl2zgeq0_random(n) = {
-  my (a, b, c, d, bd, s);
+  my(a, b, c, d, bd, s);
   while (1 == 1,
     a = random(n) + 1;
     c = random(n + 1);
@@ -94,6 +125,40 @@ sl2zgeq0_random(n) = {
   );
 }
 
+/*Returns 1 if we know there are no squares in the orbit of Psi1*xy due to a reciprocity obstruction, 0 if we expect there to be squares (based on Table 1), and -1 if there are no squares due to a congruence obstruction. */
+psi_isreciprocity(xy, entry) = {
+  my(line);
+  line = table1_line(xy);
+  if (line == 1, return(1));
+  if (line == 2, return(0));
+  if (line == 3, if (entry == 1, return(-1), return(1)));
+  if (line == 4, if (entry == 1, return(-1), return(0)));
+  if (line == 5, return(1));
+  if (line == 6, return(0));
+  if (line == 7, if (entry == 1, return(0), return(-1)));
+  if (line == 8, if (entry == 1, return(1), return(0)));
+  if (line == 9, if (entry == 1, return(0), return(-1)));
+  error("Invalid inputs");
+}
+
+/*Given the pair (x, y), returns the line in Table 1 that they correspond to.*/
+table1_line(xy) = {
+  my(x, y);
+  x = xy[1]; y = xy[2];
+  if (gcd(x, y) > 1, return(0));
+  if (y % 4 == 0,
+    if (x % 4 == 1,/*(1, 0) mod 4: lines 1, 2*/
+      if (kronecker(x, y) == -1, return(1), return(2));
+    );
+    /*(3, 0) mod 4: lines 3, 4*/
+    if (kronecker(x, y) == -kronecker(-1, y), return(3), return (4)); 
+  );
+  if (y % 4 == 1,/*(*, 1) mod 4: lines 5, 6*/
+    if (kronecker(x, y) == -1, return(5), return(6));
+  );
+  if (y % 4 == 2, return(7));/*(*, 2) mod 4: line 7*/
+  if (kronecker(x, y) == -1, return(8), return(9));/*(*, 3) mod 4: lines 8, 9*/
+}
 
 
 
@@ -154,71 +219,6 @@ psi1_missingsquares(xy, B, entry) = {
   return(semigroup_missinglist(M, v, xy, entry));
 }
 
-/*Given the pair (x, y), returns the line in Table 1 that they correspond to.*/
-table1_line(xy) = {
-  my(x, y);
-  x = xy[1]; y = xy[2];
-  if (gcd(x, y) > 1, return(0));
-  if (x % 4 == 0,
-    if (y % 4 == 1,/*(0, 1) mod 4*/
-      if (kronecker(x, y) == -1, return(1), return(2));
-    );
-    if (kronecker(x, y) == -1, return(3), return(4));/*(0, 3) mod 4*/
-  );
-  if (x % 4 == 1,
-    if (y % 4 == 0,/*(1, 0) mod 4*/
-      if (kronecker(x, y) == -1, return(5), return(6));
-    );
-    if (y % 4 == 1,/*(1, 1) mod 4*/
-      if (kronecker(x, y) == -1, return(7), return(8));
-    );
-    if (y % 4 == 2, return(9));/*(1, 2) mod 4*/
-    if (kronecker(x, y) == -1, return(10), return(11));/*(1, 3) mod 4*/
-  );
-  if (x % 4 == 2,
-    if (y % 4 == 1,/*(2, 1) mod 4*/
-      if (kronecker(x, y) == -1, return(12), return(13));
-    );
-    if (kronecker(x, y) == -1, return(14), return(15));/*(2, 3) mod 4*/
-  );
-  if (y % 4 == 0,
-    if (kronecker(x, y) == -kronecker(-1, oddpart(y)), return(16), return(17));/*(3, 0) mod 4*/
-  );
-  if (y % 4 == 1,
-    if (kronecker(x, y) == -1, return(18), return(19));/*(3, 1) mod 4*/
-  );
-  if (y % 4 == 2, return(20));/*(3, 2) mod 4*/
-  if (kronecker(x, y) == -1, return(21), return(22));/*(3, 3) mod 4*/
-}
-
-/*Returns 1 if we know there are no squares in the orbit of Psi1*xy due to a reciprocity obstruction, 0 if we expect there to be squares (based on Table 1), and -1 if there are no squares due to a congruence obstruction. */
-table1_prediction(xy, entry) = {
-  my(line);
-  line = table1_line(xy);
-  if (line == 1,  return(1));
-  if (line == 2,  return(0));
-  if (line == 3,  if (entry == 1, return(1), return(-1)));
-  if (line == 4,  if (entry == 1, return(0), return(-1)));
-  if (line == 5,  return(1));
-  if (line == 6,  return(0));
-  if (line == 7,  return(1));
-  if (line == 8,  return(0));
-  if (line == 9,  if (entry == 1, return(0), return(-1)));
-  if (line == 10, if (entry == 1, return(1), return(-1)));
-  if (line == 11, if (entry == 1, return(0), return(-1)));
-  if (line == 12, return(1));
-  if (line == 13, return(0));
-  if (line == 14, if (entry == 1, return(1), return(-1)));
-  if (line == 15, if (entry == 1, return(0), return(-1)));
-  if (line == 16, if (entry == 1, return(-1), return(1)));
-  if (line == 17, if (entry == 1, return(-1), return(0)));
-  if (line == 18, return(1));
-  if (line == 19, return(0));
-  if (line == 20, if (entry == 1, return(0), return(-1)));
-  if (line == 21, if (entry == 1, return(1), return(-1)));
-  if (line == 22, if (entry == 1, return(0), return(-1)));
-  error("Invalid inputs");
-}
 
 /*Returns 1 if Table 1 gives the correct prediction for the missing squares up to B^2 in the Psi orbit for xy=[x, y]~.*/
 table1_iscorrect_psi(xy, B, entry) = {

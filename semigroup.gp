@@ -29,7 +29,7 @@ semigroup_library=strprintf("./libsemigroup-%d-%d.so", parigp_version[1], parigp
   install(psi_mats,"L");
   addhelp(psi_mats,"psi_mats(N): Returns all the matrices in Psi with maximum entry N (Psi as defined in the paper: elements of Gamma_1(4) with nonnegative entries and Kronecker symbol of a row/column 1.");
   install(psi_rep,"iLLLD1,L,");
-  addhelp(psi_rep,"psi_rep(x, y, n, {entry=1}): returns 1 if n is a numerator (entry=1) or denominator (entry=2) in the orbit Psi*[x,y]~. This is based on Lemma 9.2. All inputs must fit as C long's on your operating system, and (x, y) need to be nonnegative and coprime.");
+  addhelp(psi_rep,"psi_rep(x, y, n, {entry=1}): returns 1 if n is a numerator (entry=1) or denominator (entry=2) in the orbit Psi*[x,y]~. This is based on Lemma 4.1. All inputs must fit as C long's on your operating system, and (x, y) need to be nonnegative and coprime.");
 
 /*SECTION 4: CONTINUED FRACTIONS*/
   install(contfraceven,"G");
@@ -53,12 +53,17 @@ semigroup_library=strprintf("./libsemigroup-%d-%d.so", parigp_version[1], parigp
 
 /*SECTION 1: TESTING*/
   addhelp(test_evencontfrac,"test_evencontfrac(n, B): tests that the even continued fraction does correspond to orbits of [1,0]~ as described at the start of section 2. We pick random positive rational numbers x/y with 1<=x,y<=B, and do this test n times.");
+  addhelp(test_psisemigroup,"test_psisemigroup(n, B): tests that Psi is a semigroup by generating n pairs of elements in Psi with coefficients bounded by B, and checking that their product lies in Psi.");
 
-/*SECTION 2: SUPPORTING METHODS*/
+/*SECTION 2: SUPPLEMENTARY COMPUTATIONS*/
+  addhelp(supp_Psi23orbit,"supp_Psi23orbit(n = 109120000): tests the non-square integers between 1 and n, printing any which are not numerators of Psi*[2, 3]~. Based on the proof of Theorem 2.7, any non-square i>=default value of n is a numerator in the orbit, hence this gives the complete list.");
+
+/*SECTION 3: SUPPORTING METHODS*/
   addhelp(gamma14geq0_random,"gamma14geq0_random(n): returns a random element of Gamma_1(4)^{>=0} where the size of the coefficients are bounded by n (not necessarily uniformly, but should be reasonably close).");
   addhelp(psi_random,"psi_random(n): returns a random element of Psi where the size of the coefficients are bounded by n (not necessarily uniformly, but should be reasonably close).");
   addhelp(sl2zgeq0_random,"sl2zgeq0_random(n): returns a random element of SL(2, Z)^{>=0} where the size of the coefficients are bounded by n (not necessarily uniformly, but should be reasonably close).");
-
+  addhelp(psi_isreciprocity,"psi_isreciprocity(xy, entry: returns 1 if Table 1 predicts there to be no squares in Psi*xy (due to a reciprocity obstruction), 0 if squares are possible and there is no reciprocity obstruction listed, and -1 if squares are not possible due to a congruence obstruction. entry = 1 corresponds to the numerator, 2 the denominator.");
+  addhelp(table1_line,"table1_line(xy): given the pair [x, y]~, returns the line (1 - 9) in Table 1 that the pair corresponds to (i.e. what the congruence and reciprocity obstructions are).");
 
 /*ADD IN THIS TO THE MAIN HELP ADDHELP LINE*/
   addhelp(testkronaction,"testkronaction(B, n, xymin, xymax): tests Proposition 3.2 by calling kronactioncorrect on n random matrices in SL(2, Z)^{>=0} with entries bounded by B. The values of x, y tried are all valid pairs with xymin<=x, y<=xymax. If the formula fails, we print the failing inputs, and raise an error. If no error occurs, all tests passed successfully.");
