@@ -1,13 +1,18 @@
 /*Methods related to the paper, divided into three sections:
 
-1. TESTING: tests the correctness of certain claims by computationally checking them in a number of random cases.
+1. TESTING: tests the correctness of certain claims by computationally checking them in a number of cases.
 
-2. SUPPLEMENTARY COMPUTATIONS: Recreate computations claimed int he paper.
+2. SUPPLEMENTARY COMPUTATIONS: Recreate computations claimed in the paper.
 
 3. SUPPORTING METHODS: self explanatory
 */
 
+
 /*SECTION 1: TESTING*/
+
+/*Run tests for all of the testing methods we wrote.*/
+
+
 
 /*Tests that the even continued fraction does correspond to orbits of [1,0]~ as described at the start of section 2. We pick random positive rational numbers x/y with 1<=x,y<=B, and do this test n times.*/
 test_evencontfrac(n, B) = {
@@ -35,17 +40,76 @@ test_psisemigroup(n, B) = {
   printf("All tests passed.\n");
 }
 
+/*Returns 1 if Table 1 gives the correct prediction for the missing squares up to B^2 in the Psi orbit for xy=[x, y]~.*/
+test_table1_psi(xy, B, entry) = {
+  my(pred);
+  pred = psi_isreciprocity(xy, entry);
+  if (pred == -1, return(1));/*Congruence obstruction, nothing to do.*/
+  actual = psi_missingsquares(xy, B, entry);
+  if (pred == 1 && actual == 0, printf("ERROR: squares found when there were not supposed to be with inputs xy=%Ps, B=%d, entry=%d\n", xy, B, entry);error("Squares found when not allowed."));
+  if (pred == 0 && actual == 1, return(0));/*No obstruction but we didn't find any squares. We don't raise an error since perhaps B is not large enough.*/
+  return(1);
+}
+
+/*Tests Table 1 for all 1<=x, y<=xymax and squares up to B^2. If B is too small this will of course fail. Returns the vector of counts of how many pairs of each line (1 to 9) were tested.*/
+test_table1_psi_many(xymax = 200, B = 300) = {
+  my(x, y, v);
+  printf("Testing Table 1 on the orbits of Psi for 1<=x, y<=%d and squares up to %d^2:\n", xymax, B);
+  v = vector(9);
+  for (x = 1, xymax,
+    for (y = 1, xymax,
+      if (gcd(x, y) == 1,
+        v[table1_line([x, y])]++;
+        if (test_table1_psi([x, y], B, 1) != 1, printf("Squares expected but not found: (x, y, B, entry) = %d %d %d 1\n", x, y, B));
+        if (test_table1_psi([x, y], B, 2) != 1, printf("Squares expected but not found: (x, y, B, entry) = %d %d %d 2\n", x, y, B));
+      );
+    );
+  );
+  printf("Done tests!\n");
+  return(v);
+}
+
 
 /*SECTION 2: SUPPLEMENTARY COMPUTATIONS*/
 
 /*Prints the missing numerators in the orbit, defaulting to the value we need to check it up to.*/
-supp_Psi23orbit(n = 109120000) = {
+test_Psi23orbit(n = 109120000) = {
   printf("Finding the numerators of Psi[2, 3]~ between 1 and %d, printing the non-squares that are missing:\n", n);
   for (i = 1, n,
     if (!issquare(i) && !psi_rep(2, 3, i, 1), printf("%d\n", i));/*Missing non-square*/
   );
   printf("All numbers searched!\n");
 }
+
+/*Returns 1 if Table 1 gives the correct prediction for the missing squares up to B^2 in the Psi_1 orbit for xy=[x, y]~.*/
+test_table1_psi1(xy, B, entry) = {
+  my(pred);
+  pred = psi_isreciprocity(xy, entry);
+  if (pred == -1, return(1));/*Congruence obstruction, nothing to do.*/
+  actual = psi1_missingsquares(xy, B, entry);
+  if (pred == 1 && actual == 0, printf("ERROR: squares found when there were not supposed to be with inputs xy=%Ps, B=%d, entry=%d\n", xy, B, entry);error("Squares found when not allowed."));
+  if (pred == 0 && actual == 1, return(0));/*No obstruction but we didn't find any squares. We don't raise an error since perhaps B is not large enough (or, maybe Table 1 is wrong for Psi_1!).*/
+  return(1);
+}
+
+/*Tests Table 1 for all 1<=x, y<=xymax and squares up to B^2. If B is too small this will of course fail. Returns the vector of counts of how many pairs of each line (1 to 9) were tested.*/
+test_table1_psi1_many(xymax = 200, B = 300) = {
+  my(x, y, v);
+  printf("Testing Table 1 on the orbits of Psi_1 for 1<=x, y<=%d and squares up to %d^2:\n", xymax, B);
+  v = vector(9);
+  for (x = 1, xymax,
+    for (y = 1, xymax,
+      if (gcd(x, y) == 1,
+        v[table1_line([x, y])]++;
+        if (test_table1_psi1([x, y], B, 1) != 1, printf("Squares expected but not found: (x, y, B, entry) = %d %d %d 1\n", x, y, B));
+        if (test_table1_psi1([x, y], B, 2) != 1, printf("Squares expected but not found: (x, y, B, entry) = %d %d %d 2\n", x, y, B));
+      );
+    );
+  );
+  printf("Done tests!\n");
+  return(v);
+}
+
 
 /*SECTION 3: SUPPORTING METHODS*/
 
@@ -136,9 +200,23 @@ psi_isreciprocity(xy, entry) = {
   if (line == 5, return(1));
   if (line == 6, return(0));
   if (line == 7, if (entry == 1, return(0), return(-1)));
-  if (line == 8, if (entry == 1, return(1), return(0)));
+  if (line == 8, if (entry == 1, return(1), return(-1)));
   if (line == 9, if (entry == 1, return(0), return(-1)));
   error("Invalid inputs");
+}
+
+/*Tests if all the squares in the orbit of Psi*[x, y]~ are missing up to B^2. Returns 1 if they are missing, 0 else.*/
+psi_missingsquares(xy, B, entry) = {
+  for (i = 1, B, if (psi_rep(xy[1], xy[2], i^2, entry), return(0)));
+  return(1);
+}
+
+/*Tests if all the squares in the orbit of Psi_1*[x, y]~ are missing up to B^2. Returns 1 if they are missing, 0 else.*/
+psi1_missingsquares(xy, B, entry) = {
+  my(M, v);
+  M = [[1, 1;0, 1], [1, 0;4, 1]];
+  v = vector(B, i, i^2);
+  return(semigroup_missinglist(M, v, xy, entry));
 }
 
 /*Given the pair (x, y), returns the line in Table 1 that they correspond to.*/
@@ -203,69 +281,6 @@ kronactioncorrect(M, xy) = {
   );
   if (valuation(cxpdy, 2) == 1, mu = mu * kronecker(b * x * cxpdy + 1, 2));/*Now mu=mu_1*mu_2*/
   return(kronecker(a * x + b * y, cxpdy) * (-1)^(alpha) * mu * kronecker(c, d) * kronecker(x, y));
-}
-
-/*Tests if all the squares in the orbit of Psi*[x, y]~ are missing up to B^2. Returns 1 if they are missing, 0 else.*/
-psi_missingsquares(xy, B, entry) = {
-  for (i = 1, B, if (psi_rep(xy[1], xy[2], i^2, entry), return(0)));
-  return(1);
-}
-
-/*Tests if all the squares in the orbit of Psi_1*[x, y]~ are missing up to B^2. Returns 1 if they are missing, 0 else.*/
-psi1_missingsquares(xy, B, entry) = {
-  my(M, v);
-  M = [[1, 1;0, 1], [1, 0;4, 1]];
-  v = vector(B, i, i^2);
-  return(semigroup_missinglist(M, v, xy, entry));
-}
-
-
-/*Returns 1 if Table 1 gives the correct prediction for the missing squares up to B^2 in the Psi orbit for xy=[x, y]~.*/
-table1_iscorrect_psi(xy, B, entry) = {
-  my(pred);
-  pred = table1_prediction(xy, entry);
-  if (pred == -1, return(1));
-  actual = psi_missingsquares(xy, B, entry);
-  if (pred != actual, return(0));
-  return(1);
-}
-
-/*Returns 1 if Table 1 gives the correct prediction for the missing squares up to B^2 in the Psi_1 orbit for xy=[x, y]~.*/
-table1_iscorrect_psi1(xy, B, entry) = {
-  my(pred);
-  pred = table1_prediction(xy, entry);
-  if (pred == -1, return(1));
-  actual = psi1_missingsquares(xy, B, entry);
-  if (pred != actual, return(0));
-  return(1);
-}
-
-/*Tests Table 1 for all 1<=x, y<=xymax and squares up to B. If B is too small this will of course fail. Returns the vector of counts of how many pairs of each line (1 to 22) were tested.*/
-table1_bigtest(xymax, B, whichpsi = 1) = {
-  my(x, y, v);
-  v = vector(22);
-  if (whichpsi,
-    for (x = 1, xymax,
-      for (y = 1, xymax,
-        if (gcd(x, y) == 1,
-          v[table1_line([x, y])]++;
-          if (table1_iscorrect_psi1([x, y], B, 1) != 1,printf("WRONG: (x, y, B, entry) = %d %d %d 1\n", x, y, B));
-          if (table1_iscorrect_psi1([x, y], B, 2) != 1,printf("WRONG: (x, y, B, entry) = %d %d %d 2\n", x, y, B));
-        );
-      );
-    );
-    return(v);
-  );
-  for (x = 1, xymax,
-    for (y = 1, xymax,
-      if (gcd(x, y) == 1,
-        v[table1_line([x, y])]++;
-        if (table1_iscorrect_psi([x, y], B, 1) != 1,printf("WRONG: (x, y, B, entry) = %d %d %d 1\n", x, y, B));
-        if (table1_iscorrect_psi([x, y], B, 2) != 1,printf("WRONG: (x, y, B, entry) = %d %d %d 2\n", x, y, B));
-      );
-    );
-  );
-  return(v);
 }
 
 
