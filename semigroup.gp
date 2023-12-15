@@ -3,7 +3,7 @@ parigp_version=version();
 semigroup_library=strprintf("./libsemigroup-%d-%d.so", parigp_version[1], parigp_version[2]);
 
 /*semigroup.c*/
-  addhelp(semigroup,"Basic (semi)group methods:\n\tLRword, semigroup_growth, semigroup_mats, semigroup_mgens.\n\nSemigroup orbits:\n\tsemigroup_missing, semigroup_missing_parabolic, semigroup_missinglist, semigroup_orbit.\n\nPsi methods:\n\tpsi_mats, psi_rep.\n\nContinued fractions:\n\tcontfraceven, contfractoQ, contfractoword.\n\mn\n\nLinear regression:\n\tOLS, OLS_nointercept, OLS_single, rsquared.\n\nPaper methods:\n\ttestkronaction, kronactioncorrect, psi_missingsquares, psi1_missingsquares, table1_line, table1_prediction, table1_iscorrect_psi, table1_iscorrect_psi1, table1_bigtest.");
+  addhelp(semigroup,"Basic (semi)group methods:\n\tLRword, semigroup_growth, semigroup_mats, semigroup_mgens.\n\nSemigroup orbits:\n\tsemigroup_missing, semigroup_missing_parabolic, semigroup_missinglist, semigroup_orbit.\n\nPsi methods:\n\tpsi_mats, psi_rep.\n\nContinued fractions:\n\tcontfraceven, contfractoQ, contfractoword.\n\nLinear regression:\n\tOLS, OLS_nointercept, OLS_single, rsquared.\n\nPaper methods:\n\nTesting:\n\trunalltests, test_evencontfrac, test_gamma14geq0_kronequal, test_kronaction, test_kronaction_many, test_psioogens, test_psisemigroup, test_table1_psi, test_table1_psi_many.\n\nSupplementary computations:\n\ttest_psi_23orbit, test_psi1_23orbit, test_table1_psi1, test_table1_psi1_many.\n\nSupporting methods:\n\tgamma14geq_random, psi_random, sl2zgeq0_random, oddpart, psi_isreciprocity, psi_missingsquares, psi1_missingsquares, table1_line.");
   
 /*SECTION 1: BASIC (SEMI)GROUP METHODS*/
   install(LRword,"G",,semigroup_library);
@@ -51,8 +51,6 @@ semigroup_library=strprintf("./libsemigroup-%d-%d.so", parigp_version[1], parigp
 
 /*paper.gp*/
 
-/*ADD IN THIS TO THE MAIN HELP ADDHELP LINE AND RUN ALL THE TESTS AND NOTE RUNALLTESTS IN README*/
-
 /*SECTION 1: TESTING*/
   addhelp(runalltests,"runalltests(): runs basic tests for all of the testing and supplementary methods.");
   addhelp(test_evencontfrac,"test_evencontfrac(n, B): tests that the even continued fraction does correspond to orbits of [1,0]~ as described at the start of section 2. We pick random positive rational numbers x/y with 1<=x,y<=B, and do this test n times.");
@@ -65,7 +63,8 @@ semigroup_library=strprintf("./libsemigroup-%d-%d.so", parigp_version[1], parigp
   addhelp(test_table1_psi_many,"test_table1_psi_many(xymax = 200, B = 300): tests that the reciprocity obstructions listed in Table 1 are both correct and complete for Psi, for all 1<=x, y<=xymax, and computing squares up to B^2. If squares are found when not allowed, raises an error. If no squares are found when they should be, prints the inputs to the terminal. If B is too small, then this may happen, and you can try to increase B to check that eventually squares do appear. Returns the vector of counts of how many pairs of each line of Table 1 (1 to 9) were tested.");
 
 /*SECTION 2: SUPPLEMENTARY COMPUTATIONS*/
-  addhelp(test_Psi23orbit,"test_Psi23orbit(n = 109120000): tests the non-square integers between 1 and n, printing any which are not numerators of Psi*[2, 3]~. Based on the proof of Theorem 2.7, any non-square i>=default value of n is a numerator in the orbit, hence this gives the complete list.");
+  addhelp(test_psi_23orbit,"test_psi_23orbit(n = 109120000): tests the non-square integers between 1 and n, printing any which are not numerators of Psi*[2, 3]~. Based on the proof of Theorem 2.7, any non-square i>=default value of n is a numerator in the orbit, hence this gives the complete list.");
+  addhelp(test_psi1_23orbit,"test_psi_23orbit(n = 10^7): finds all missing numerators in Psi_1*[2, 3]~ up to n, printing any non-squares.");
   addhelp(test_table1_psi1,"test_table1_psi1(xy, B, entry): returns 1 if there was a reciprocity obstruction for Psi_1*xy and we did not find any squares up to B^2, or if the squares are ruled out by a congruence obstruction, or if squares are not ruled out and there is no reciprocity obstruction and we find squares. If there is a reciprocity obstruction and squares are found, raises an error. If there is no reciprocity obstruction, squares are not ruled out by congruence, and we find no squares, returns 0 (presumably B is not large enough).");
   addhelp(test_table1_psi1_many,"test_table1_psi1_many(xymax = 200, B = 300): tests that the reciprocity obstructions listed in Table 1 are both correct and complete for Psi_1, for all 1<=x, y<=xymax, and computing squares up to B^2. If squares are found when not allowed, raises an error. If no squares are found when they should be, prints the inputs to the terminal. If B is too small, then this may happen, and you can try to increase B to check that eventually squares do appear. Returns the vector of counts of how many pairs of each line of Table 1 (1 to 9) were tested.");
 

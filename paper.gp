@@ -13,22 +13,25 @@
 /*Run tests for all of the testing methods we wrote.*/
 runalltests() = {
   printf("Let's computationally tests various claims made in the paper.\n\n\n");
-  printf("To begin, let's test that even continued fractions correspond to LR words.\n\n\n");
+  printf("To begin, let's test that even continued fractions correspond to LR words.\n");
   test_evencontfrac(20000, 3000);
-  printf("\n\nNext, let's check Lemma 3.1 that the Kronecker symbol of any row or column of an element of Gamma_1(4)^{>=0} is constant.\n\n\n");
+  printf("\n\n\nNext, let's check Lemma 3.1 that the Kronecker symbol of any row or column of an element of Gamma_1(4)^{>=0} is constant.\n");
   test_gamma14geq0_kronequal(20000, 3000);
-  printf("\n\nNext, let's check Lemma 3.4 about the formula for kronecker(ax+by, cx+dy) in terms of kronecker(x, y) when [a,b;c,d] is a matrix in SL(2, Z)^{>=0}.\n\n\n");
+  printf("\n\n\nNext, let's check Lemma 3.4 about the formula for kronecker(ax+by, cx+dy) in terms of kronecker(x, y) when [a,b;c,d] is a matrix in SL(2, Z)^{>=0}.\n");
   test_kronaction_many(2000, 3000, 1, 70);
-  printf("\n\nNext, let's check that Psi is a semigroup.\n\n\n");
+  printf("\n\n\nNext, let's check that Psi is a semigroup.\n");
   test_psisemigroup(20000, 3000);
-  printf("\n\nNext, let's check that Psi gives a correct and complete list of reciprocity obstructions for Psi.\n\n\n");
+  printf("\n\n\nNext, let's check that Psi gives a correct and complete list of reciprocity obstructions for Psi.\n");
   test_table1_psi_many();
-  printf("\n\nNext, let's check that Psi gives a correct and complete list of reciprocity obstructions for Psi_1.\n\n\n");
+  printf("\n\n\nNext, let's check that Psi gives a correct and complete list of reciprocity obstructions for Psi_1.\n");
   test_table1_psi1_many();
-  printf("\n\nNext, let's check that the matrices M_k must appear in any set of generators for Psi.\n\n\n");
+  printf("\n\n\nNext, let's check that the matrices M_k must appear in any set of generators for Psi.\n");
   test_psioogens(60);
-  printf("\n\nFinally, let's check that the numerators in the orbit of Psi*[2, 3]~ are as claimed in Theorem 2.7.\n\n\n");
-  test_Psi23orbit();
+  printf("\n\n\nNext, let's check that the numerators in the orbit of Psi*[2, 3]~ are as claimed in Theorem 2.7.\n");
+  test_psi_23orbit();
+  printf("\n\n\nFinally, let's check he numerators in the orbit of Psi_1*[2, 3]~ up to 10^7 to get Conjecture 2.13. This may take half a minute.\n");
+  test_psi1_23orbit();
+  printf("\n\n\nAll standard tests complete!! No critical errors found.\n");
 }
 
 /*Tests that the even continued fraction does correspond to orbits of [1,0]~ as described at the start of section 2. We pick random positive rational numbers x/y with 1<=x,y<=B, and do this test n times.*/
@@ -162,14 +165,25 @@ test_table1_psi_many(xymax = 200, B = 300) = {
 
 /*SECTION 2: SUPPLEMENTARY COMPUTATIONS*/
 
-/*Prints the missing numerators in the orbit, defaulting to the value we need to check it up to.*/
-test_Psi23orbit(n = 109120000) = {
-  printf("Finding the numerators of Psi[2, 3]~ between 1 and %d, printing the non-squares that are missing:\n", n);
+/*Prints the missing non-square numerators in the orbit, defaulting to the value we need to check it up to.*/
+test_psi_23orbit(n = 109120000) = {
+  printf("Finding the non-square numerators of Psi[2, 3]~ between 1 and %d, printing those that are missing:\n", n);
   for (i = 1, n,
     if (!issquare(i) && !psi_rep(2, 3, i, 1), printf("%d\n", i));/*Missing non-square*/
   );
   printf("All numbers searched!\n");
 }
+
+/*Prints the missing non-square numerators in the orbit, defaulting to 10^7.*/
+test_psi1_23orbit(n = 10000000) = {
+  my(M, v);
+  printf("Finding the non-square numerators of Psi_1[2, 3]~ between 1 and %d, printing those that are missing:\n", n);
+  M = [[1, 1;0, 1], [1, 0;4, 1]];
+  v = semigroup_missing(M, n, [2, 3]~, [[0], 1], 1, 1);
+  for (i = 1, #v, if (!issquare(v[i]), printf("%d ", v[i])));
+  printf("\nAll numbers searched!\n");
+}
+
 
 /*Returns 1 if Table 1 gives the correct prediction for the missing squares up to B^2 in the Psi_1 orbit for xy=[x, y]~.*/
 test_table1_psi1(xy, B, entry) = {
