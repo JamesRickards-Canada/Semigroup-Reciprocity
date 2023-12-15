@@ -25,6 +25,9 @@ Semigroup orbits:
 * ```semigroup_missing_parabolic```: same as ```semigroup_missing```, except optimized for memory usage, which is useful when one of the generating matrices being parabolic. This is roughly 80% slower, but should be used if you are computing beyond $10^9$, as ```semigroup_missing``` will take far too much memory.
 * ```semigroup_missinglist```: similar to ```semigroup_missing```, except we supply a vector of integers that we want to check if it is completely missing. This is not optimized for the semigroup having parabolic elements.
 
+Testing:
+* ```runalltests```: run all the tests in paper.gp, which aims to computationally test many of the claims made in the paper, as well as provide supplemental computations.
+
 ## Installation
 1. ```git clone``` this repository, and enter the folder created.
 
