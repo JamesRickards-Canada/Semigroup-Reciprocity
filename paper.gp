@@ -11,8 +11,12 @@
 /*SECTION 1: TESTING*/
 
 /*Run tests for all of the testing methods we wrote.*/
-
-
+runalltests() = {
+  printf("To begin, let's test that even continued fractions correspond to LR words.\n\n\n");
+  test_evencontfrac(20000, 3000);
+  printf("\n\nNext, let's check Lemma 3.1 that the Kronecker symbol of any row or column of an element of Gamma_1(4)^{>=0} is constant.\n\n\n");
+  test_gamma14geq0_kronequal(20000, 3000);
+}
 
 /*Tests that the even continued fraction does correspond to orbits of [1,0]~ as described at the start of section 2. We pick random positive rational numbers x/y with 1<=x,y<=B, and do this test n times.*/
 test_evencontfrac(n, B) = {
@@ -23,6 +27,62 @@ test_evencontfrac(n, B) = {
     c = contfraceven(x);
     M = contfractoword(c);
     if (M[1, 1] != numerator(x) || M[2,1] != denominator(x), printf("Test failed with x=%Ps\n", x);error("Failed test."));
+  );
+  printf("All tests passed.\n");
+}
+
+/*Generates n elements of Gamma_1(4)^{>=0} whose coefficients are at most B, and checks Lemma 3.1: the Kronecker symbols of their rows and columns are all equal.*/
+test_gamma14geq0_kronequal(n, B) = {
+  my(M, k);
+  printf("Testing %d random elements of Gamma_1(4)^{>=0} whose coefficients are at most %d:\n", n, B);
+  for (i = 1, n,
+    M = gamma14geq0_random(B);
+    k = kronecker(M[1, 1], M[1, 2]);
+    if (k != kronecker(M[1, 1], M[2, 1]), printf("Test failed with M = %Ps\n", M);error("Test failed."));
+    if (k != kronecker(M[1, 2], M[2, 2]), printf("Test failed with M = %Ps\n", M);error("Test failed."));
+    if (k != kronecker(M[2, 1], M[2, 2]), printf("Test failed with M = %Ps\n", M);error("Test failed."));
+  );
+  printf("All tests passed.\n");
+}
+
+/*Tests Proposition 3.4: M=[a, b;c, d] in SL(2, Z)^{>=0} a, b, c, d >= 0, x, y>=0 coprime, gcd(x, d)=1, this proposition gives a formula for kron(ax+by/cx+dy). This function returns 1 if and only if the formula is correct for the given inputs.*/
+test_kronaction(M, xy) = {
+  my(x, y, a, b, c, d, A, B, cxpdy, C, D, alpha, mu);
+  x = xy[1]; y = xy[2];
+  a = M[1, 1]; b = M[1, 2];
+  c = M[2, 1]; d = M[2, 2];
+  if (gcd(x, d) > 1 || gcd(x, y) > 1 || a < 0 || b < 0 || c < 0 || d < 0, return(1));/*Ignore this case*/
+  A = ((oddpart(x) - 1) >> 1) % 2;
+  B = ((oddpart(d) - 1) >> 1) % 2;
+  cxpdy = c * x + d * y;
+  C = ((oddpart(cxpdy) - 1) >> 1) % 2;
+  D = ((oddpart(y) - 1) >> 1) % 2;
+  alpha = (A * B + A * C + B * C + A * D) % 2;/*Formula for alpha*/
+  if (valuation(x, 2) == 1 || valuation(d, 2) == 1,/*mu=mu_1 so far*/
+    mu = kronecker(c*x*d*y + 1, 2);
+  ,
+    mu = 1;
+  );
+  if (valuation(cxpdy, 2) == 1, mu = mu * kronecker(b * x * cxpdy + 1, 2));/*Now mu=mu_1*mu_2*/
+  return(kronecker(a * x + b * y, cxpdy) * (-1)^(alpha) * mu * kronecker(c, d) * kronecker(x, y));
+}
+
+/*Tests Proposition 3.4 by calling test_kronaction on n random matrices in SL(2, Z)^{>=0} with entries bounded by B. The values of x, y tried are all valid pairs with xymin<=x, y<=xymax*/
+test_kronaction_many(n, B, xymin, xymax) = {
+  my(M);
+  printf("Testing %d random matrices with coefficients at most %d and all valid pairs [x, y]~ where %d<=x, y<=%d:\n", n, B, xymin, xymax);
+  for (i = 1, n,
+    M = sl2zgeq0_random(B);
+    for (x = xymin, xymax,
+      if (gcd(x, M[2, 2]) == 1,
+        for (y = xymin, xymax,
+          if (gcd(x, y) == 1,
+            if (test_kronaction(M, [x, y]) != 1, printf("WRONG FORMULA: %Ps %d %d\n", M, x, y);error("FORMULA FAILED"));
+          );
+        );
+      );
+    );
+    if (i % 500 == 0, printf("%d matrices tried\n", i));
   );
   printf("All tests passed.\n");
 }
@@ -189,6 +249,13 @@ sl2zgeq0_random(n) = {
   );
 }
 
+/*Returns the odd part of an integer.*/
+oddpart(w) = {
+  my(v);
+  v = valuation(w, 2);
+  return(w >> v);
+}
+
 /*Returns 1 if we know there are no squares in the orbit of Psi1*xy due to a reciprocity obstruction, 0 if we expect there to be squares (based on Table 1), and -1 if there are no squares due to a congruence obstruction. */
 psi_isreciprocity(xy, entry) = {
   my(line);
@@ -238,57 +305,3 @@ table1_line(xy) = {
   if (kronecker(x, y) == -1, return(8), return(9));/*(*, 3) mod 4: lines 8, 9*/
 }
 
-
-
-
-/*Tests Proposition 3.2 by calling kronactioncorrect on n random matrices in SL(2, Z)^{>=0} with entries bounded by B. The values of x, y tried are all valid pairs with xymin<=x, y<=xymax*/
-testkronaction(B, n, xymin, xymax) = {
-  my(pair, v, M);
-  pair = [[1, 1;0, 1], [1, 0;1, 1]];
-  v = semigroupmats(pair, B);
-  for (i = 1, n,
-    M = v[random(#v) + 1];
-    for (x = xymin, xymax,
-      if (gcd(x, M[2, 2]) == 1,
-        for (y = xymin, xymax,
-          if (gcd(x, y) == 1,
-            if (kronactioncorrect(M, [x, y]) != 1, printf("WRONG FORMULA: %Ps %d %d\n", M, x, y);error("FORMULA FAILED"));
-          );
-        );
-      );
-    );
-    if (i % 50 == 0, printf("%d matrices tried\n", i));
-  );
-}
-
-/*Tests Proposition 3.2: M=[a, b;c, d] in SL(2, Z)^{>=0} a, b, c, d >= 0, x, y>=0 coprime, gcd(x, d)=1, this proposition gives a formula for kron(ax+by/cx+dy). This function returns 1 if and only if the formula is correct for the given inputs.*/
-kronactioncorrect(M, xy) = {
-  my(x, y, a, b, c, d, A, B, cxpdy, C, D, alpha, mu);
-  x = xy[1]; y = xy[2];
-  a = M[1, 1]; b = M[1, 2];
-  c = M[2, 1]; d = M[2, 2];
-  if (gcd(x, d) > 1 || gcd(x, y) > 1 || a < 0 || b < 0 || c < 0 || d < 0, return(1));/*Ignore this case*/
-  A = ((oddpart(x) - 1) >> 1) % 2;
-  B = ((oddpart(d) - 1) >> 1) % 2;
-  cxpdy = c * x + d * y;
-  C = ((oddpart(cxpdy) - 1) >> 1) % 2;
-  D = ((oddpart(y) - 1) >> 1) % 2;
-  alpha = (A * B + A * C + B * C + A * D) % 2;/*Formula for alpha*/
-  if (valuation(x, 2) == 1 || valuation(d, 2) == 1,/*mu=mu_1 so far*/
-    mu = kronecker(c*x*d*y + 1, 2);
-  ,
-    mu = 1;
-  );
-  if (valuation(cxpdy, 2) == 1, mu = mu * kronecker(b * x * cxpdy + 1, 2));/*Now mu=mu_1*mu_2*/
-  return(kronecker(a * x + b * y, cxpdy) * (-1)^(alpha) * mu * kronecker(c, d) * kronecker(x, y));
-}
-
-
-/*Supporting methods*/
-
-/*Returns the odd part of an integer.*/
-oddpart(w)={
-  my(v);
-  v = valuation(w, 2);
-  return(w >> v);
-}
