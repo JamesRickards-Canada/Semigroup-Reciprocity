@@ -55,7 +55,9 @@ semigroup_library=strprintf("./libsemigroup-%d-%d.so", parigp_version[1], parigp
   addhelp(test_evencontfrac,"test_evencontfrac(n, B): tests that the even continued fraction does correspond to orbits of [1,0]~ as described at the start of section 2. We pick random positive rational numbers x/y with 1<=x,y<=B, and do this test n times.");
 
 /*SECTION 2: SUPPORTING METHODS*/
+  addhelp(gamma14geq0_random,"gamma14geq0_random(n): returns a random element of Gamma_1(4)^{>=0} where the size of the coefficients are bounded by n (not necessarily uniformly, but should be reasonably close).");
   addhelp(psi_random,"psi_random(n): returns a random element of Psi where the size of the coefficients are bounded by n (not necessarily uniformly, but should be reasonably close).");
+  addhelp(sl2zgeq0_random,"sl2zgeq0_random(n): returns a random element of SL(2, Z)^{>=0} where the size of the coefficients are bounded by n (not necessarily uniformly, but should be reasonably close).");
 
 
 /*ADD IN THIS TO THE MAIN HELP ADDHELP LINE*/
