@@ -3,7 +3,7 @@ parigp_version=version();
 semigroup_library=strprintf("./libsemigroup-%d-%d.so", parigp_version[1], parigp_version[2]);
 
 /*semigroup.c*/
-  addhelp(semigroup,"Basic (semi)group methods:\n\tLRword, semigroup_growth, semigroup_mats, semigroup_mgens.\n\nSemigroup orbits:\n\tsemigroup_missing, semigroup_missing_parabolic, semigroup_missinglist, semigroup_orbit.\n\nPsi methods:\n\tpsi_mats, psi_rep.\n\nContinued fractions:\n\tcontfraceven, contfractoQ, contfractoword, contfrac_tail_missing.\n\nLinear regression:\n\tOLS, OLS_nointercept, OLS_single, rsquared.\n\nPaper methods:\n\nTesting:\n\trunalltests, test_evencontfrac, test_gamma14geq0_kronequal, test_kronaction, test_kronaction_many, test_psioogens, test_psisemigroup, test_table1_psi, test_table1_psi_many.\n\nSupplementary computations:\n\ttest_psi_23orbit, test_psi1_23orbit, test_psi1_hdim, test_table1_psi1, test_table1_psi1_many.\n\nSupporting methods:\n\tgamma14geq_random, psi_random, sl2zgeq0_random, oddpart, psi_isreciprocity, psi_missingsquares, psi1_missingsquares, table1_line.");
+  addhelp(semigroup,"Basic (semi)group methods:\n\tLRword, semigroup_growth, semigroup_mats, semigroup_mgens.\n\nSemigroup orbits:\n\tsemigroup_missing, semigroup_missing_parabolic, semigroup_missinglist, semigroup_orbit.\n\nPsi methods:\n\tallkron, both_kron_vals, psi_mats, psi_rep.\n\nContinued fractions:\n\tcontfraceven, contfractoQ, contfractoword, contfrac_tail_missing.\n\nLinear regression:\n\tOLS, OLS_nointercept, OLS_single, rsquared.\n\nPaper methods:\n\nTesting:\n\trunalltests, test_evencontfrac, test_gamma14geq0_kronequal, test_kronaction, test_kronaction_many, test_psioogens, test_psisemigroup, test_table1_psi, test_table1_psi_many.\n\nSupplementary computations:\n\ttest_psi_23orbit, test_psi1_23orbit, test_psi1_hdim, test_table1_psi1, test_table1_psi1_many.\n\nSupporting methods:\n\tgamma14geq_random, psi_random, sl2zgeq0_random, oddpart, psi_isreciprocity, psi_missingsquares, psi1_missingsquares, table1_line.");
   
 /*SECTION 1: BASIC (SEMI)GROUP METHODS*/
   install(LRword,"G",,semigroup_library);
@@ -26,6 +26,10 @@ semigroup_library=strprintf("./libsemigroup-%d-%d.so", parigp_version[1], parigp
   addhelp(semigroup_orbit,"semigroup_orbit(mats, B, start): for the semigroup given by mats (with all nonnegative entries and infinite order), this returns the orbit of the semigroup on the (column) vector start, where the entries are bounded by B. The output can have repeats, especially if there are relations among the matrices in mats. This is mainly useful for some initial testing, as the other semigroup_missing methods are significantly more efficient when searching for missing entries.");
 
 /*SECTION 3: PSI METHODS*/
+  install(allkron,"U");
+  addhelp(allkron,"allkron(n): computes the sequence of kronecker values kron(x, n), returning a Vecsmall v where v[i]=kron(i-1, n). The length of the sequence, M, is the smallest guaranteed period. In other words, M is the smallest positive integer such that n/M is a rational square, M has same prime factors as n, and if n is even then 4|M (thus if n=2*odd prime, then M=4n. If n is not 2 mod 4, then M<=n).");
+  install(both_kron_vals,"lU");
+  addhelp(both_kron_vals,"both_kron_vals(n): returns the smallest m such that in any sequence of m consecutive integers, there is at least one for which kronecker(r+, n)=1 and kronecker(r-, n)=-1. If n is a square, returns 0. Should not be used on n larger than 10^9 or so, as it requires memory proportional to n.");
   install(psi_mats,"L");
   addhelp(psi_mats,"psi_mats(N): Returns all the matrices in Psi with maximum entry N (Psi as defined in the paper: elements of Gamma_1(4) with nonnegative entries and Kronecker symbol of a row/column 1.");
   install(psi_rep,"iLLLD1,L,");

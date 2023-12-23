@@ -13,6 +13,8 @@ int semigroup_missinglist(GEN mats, GEN miss, GEN start, long entry);
 GEN semigroup_orbit(GEN mats, long B, GEN start);
 
 /*SECTION 3: PSI METHODS*/
+GEN allkron(unsigned long n);
+long both_kron_vals(unsigned long n);
 GEN psi_mats(long N);
 int psi_rep(long x, long y, long n, long entry);
 
