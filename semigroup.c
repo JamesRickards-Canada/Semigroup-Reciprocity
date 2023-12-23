@@ -929,7 +929,6 @@ allkron(unsigned long n)
   while ( (p = u_forprime_next(&T)) ) {/*After this loop, we have computed <2, 3, 5, ..., p> in Z/MZ.*/
     if (kvals[p]) continue;/*We've already computed this one!*/
     if (!(M % p)) continue;/*Not coprime with p.*/
-    //pari_printf("prime is: %ld\n", p);
     long v = krouu(p, M), mpow = 0, ind = p;/*v = the Kronecker value.*/
     long last = 1, i = nfound, j, k;
     while (!kvals[ind]) {
@@ -963,6 +962,67 @@ allkron(unsigned long n)
 long
 both_kron_vals(unsigned long n)
 {
+  pari_sp av = avma;
+  GEN fact = factoru(n), ps = gel(fact, 1), pows = gel(fact, 2);
+  long M = 1, ep = 1, i, lps = lg(ps), issquare = 1;/*Divide out by squares stopping at power 1/2, except for p=2 where we stop at 2/3*/
+  for (i = 1; i < lps; i++) {
+   long powpar = pows[i] % 2;
+   if (powpar) issquare = 0;
+    if (ps[i] == 2) {/*Factor of 2*/
+      powpar += 2;
+      M <<= powpar;
+      ep <<= (powpar - 1);/*ep is eulerphi(M).*/
+      continue;
+    }
+    M *= ps[i];
+    ep *= (ps[i] - 1);
+    if (!powpar) {
+      M *= ps[i];
+      ep *= ps[i];
+    }
+  }/*Now we can compute the Kronecker symbols (x/M) for 0<=x<M. There are ep that are non-zero.*/
+  if (issquare) return gc_int(av, 0);/*Square, return 0.*/
+  int *kvals = (int *)pari_calloc(M * sizeof(int));/*Tracks values of Kronecker symbols. 0 if not coprime OR uninitialized.*/
+  long *foundinds = (long *)pari_malloc(ep * sizeof(long));/*Tracks indices of Kronecker values we computed.*/
+  kvals[1] = 1;
+  foundinds[0] = 1;
+  long nfound = 0;
+  forprime_t T;
+  unsigned long p;
+  u_forprime_init(&T, 2, M);/*Iterate over primes.*/
+  while ( (p = u_forprime_next(&T)) ) {/*After this loop, we have computed <2, 3, 5, ..., p> in Z/MZ.*/
+    if (kvals[p]) continue;/*We've already computed this one!*/
+    if (!(M % p)) continue;/*Not coprime with p.*/
+    long v = krouu(p, M), mpow = 0, ind = p;/*v = the Kronecker value.*/
+    long last = 1, i = nfound, j, k;
+    while (!kvals[ind]) {
+      last *= v;
+      kvals[ind] = last;/*Update Kronecker value*/
+      mpow++;/*One more power*/
+      foundinds[++i] = ind;/*One more found index.*/
+      ind = (ind * p) % M;/*Next power of p mod M.*/
+    }/*Updating p, p^2, ..., p^mpow, so that p^(mpow+1) is already computed.*/
+    for (j = 1; j <= nfound; j++) {/*Skip foundinds[0], we already did that.*/
+      ind = foundinds[j];
+      last = kvals[ind];
+      for (k = 1; k <= mpow; k++) {
+        ind = (ind * p) % M;/*Times p mod M*/
+        last *= v;
+        kvals[ind] = last;/*Update Kronecker value.*/
+        foundinds[++i] = ind;/*One more found index.*/
+      }
+    }
+    nfound = i;
+    if ((nfound + 1) == ep) break;/*Found them all!!!*/
+  }/*Now we have kvals being the vector of kron(x, M) for 0<=x<=M-1.*/
+  pari_free(foundinds);/*Don't need this anymore.*/
+  
+  /*Now we go through and compute the longest subsequence without both 1 and -1.*/
+  
+  
+  
+  pari_free(kvals);
+  set_avma(av);
   return 0;
 }
 
