@@ -1,7 +1,7 @@
 /*Methods for thin (semi)-groups.*/
 
 /*INCLUSIONS*/
-#include <pari/pari.h>
+#include <pari.h>
 #include "semigroup.h"
 
 /*STATIC DECLARATIONS*/
