@@ -16,6 +16,9 @@ static int findmissinglist(hashtable *hmiss, long Bmin, long Bmax, long ***mats,
 
 /*SECTION 3: PSI METHODS*/
 /*SECTION 4: CONTINUED FRACTIONS*/
+static void contfrac_tail_missing_execute(unsigned long Bmin, unsigned long Bmax);
+static void contfrac_tail_missing_tofile(unsigned long *miss, long blocks, long Bmin, long Bmax);
+static GEN contfrac_tail_missing_load(long Bmin, long Bmax);
 /*SECTION 5: LINEAR REGRESSION*/
 
 /*MAIN BODY*/
@@ -1077,6 +1080,141 @@ contfractoword(GEN v)
     i++;
   }
   return gerepilecopy(av, M);
+}
+
+/*Searches for the continued fractions of the form [4a_0;4a_1,...,4a_n,a_{n+1},1,2] with denoninator between B1 and B2, saving to a file those that are missing.*/
+GEN
+contfrac_tail_missing(GEN bounds, int load)
+{
+  pari_sp av = avma;
+  long Bmin = 0, Bmax = 0, t = typ(bounds);
+  if (t == t_INT) { Bmin = 1; Bmax = itos(bounds); }
+  else if (t == t_VEC || t == t_COL) {
+    if (lg(bounds) < 3) pari_err_TYPE("bounds must be a positive integer or a range of positive integers", bounds);
+    if (typ(gel(bounds, 1)) != t_INT) pari_err_TYPE("bounds must be a positive integer or a range of positive integers", bounds);
+    if (typ(gel(bounds, 2)) != t_INT) pari_err_TYPE("bounds must be a positive integer or a range of positive integers", bounds);
+    Bmin = itos(gel(bounds, 1));
+    Bmax = itos(gel(bounds, 2));
+  }
+  else if (t == t_VECSMALL) {
+    if (lg(bounds) < 3) pari_err_TYPE("bounds must be a positive integer or a range of positive integers", bounds);
+    Bmin = bounds[1];
+    Bmax = bounds[2];
+  }
+  else pari_err_TYPE("bounds must be a positive integer or a range of positive integers", bounds);
+  if (Bmin <= 0) Bmin = 1;
+  contfrac_tail_missing_execute(Bmin, Bmax);
+  set_avma(av);
+  if (!load) return gen_0;
+  return contfrac_tail_missing_load(Bmin, Bmax);
+}
+
+/*Finds all integers between 1<=Bmin and Bmax (inclusive) that are not representable as [4a_0;4a_1,...,4a_n,a_{n+1},1,2], saving them to a file.*/
+static void
+contfrac_tail_missing_execute(unsigned long Bmin, unsigned long Bmax)
+{
+  unsigned long *bitswap = (unsigned long *)pari_malloc(64 * sizeof(unsigned long));/*Used for swapping bits of longs.*/
+  bitswap[0] = 1;
+  long i;
+  for (i = 1; i < 64; i++) bitswap[i] = bitswap[i - 1] << 1;/*bitswap[i] = 2^i*/
+  unsigned long blocks = ((Bmax - Bmin) >> 6) + 1;/*Number of blocks we need to store the bits.*/
+  unsigned long *miss = (unsigned long *)pari_calloc(blocks * sizeof(unsigned long));/*Start them as all 0's.*/
+  if (!miss) {
+    printf("Insufficient memory to store the missing denominators.\n");
+    exit(1);
+  }
+  long maxdepth = 100;/*Maximal depth, to start.*/
+  unsigned long *depthseq = (unsigned long *)pari_malloc(maxdepth * sizeof(unsigned long));/*Tracks d_n=denominator of [0;4a_n,4a_{n-1},...,4a_4,a_3,1,2].*/
+  if (!depthseq) {
+    printf("Insufficient memory to store the depth sequence.\n");
+    exit(1);
+  }
+  int *swaps = (int *)pari_calloc(maxdepth * sizeof(int));/*Tracks the sequence of swaps, i.e. terms a_i.*/
+  if (!swaps) {
+    printf("Insufficient memory to store the coefficients.\n");
+    exit(1);
+  }
+  swaps[0] = 2;
+  swaps[1] = 1;
+  depthseq[0] = 2;/*[0;2]=1/2*/
+  depthseq[1] = 3;/*[0;1,2]=2/3*/
+  if (Bmin <= 3) miss[0] |= bitswap[3 - Bmin];/*Remove the denominator 3*/
+  long ind = 2;/*the 0 and 1st entries are fixed.*/
+  while (ind > 1) {/*We are coming in trying to go from [0;4a_n,...,4a_4,a_3,1,2] to [0;4a_{n+1},4a_n,...,4a_4,a_3,1,2].*/
+    swaps[ind]++;/*Increment the term.*/
+    unsigned long newden;
+    if (ind == 2) newden = swaps[ind] * depthseq[ind - 1] + depthseq[ind - 2];/*Prepend 4a_{n+1}*/
+    else newden = swaps[ind] * (depthseq[ind - 1] << 2) + depthseq[ind - 2];/*Prepend a_3.*/
+    if (newden > Bmax) {/*Too big! Go back.*/
+      swaps[ind] = 0;/*Reset*/
+      ind--;/*Back up.*/
+      continue;
+    }
+    if (newden >= Bmin) {/*Update miss.*/
+      unsigned long shift = newden - Bmin;
+      long bl = shift >> 6;
+      long part = shift % 64;/*shift = 64*bl + part*/
+      miss[bl] |= bitswap[part];/*Update miss.*/
+    }
+    depthseq[ind] = newden;/*Update depthseq.*/
+    ind++;
+    if (ind == maxdepth) {/*We are going too deep, must pari_reallocate the storage location.*/
+      long newdepth = maxdepth << 1;/*Double it.*/
+      depthseq = pari_realloc(depthseq, newdepth * sizeof(unsigned long));
+      if (!depthseq) {
+        printf("Insufficient memory to pari_reallocate the depth sequence.\n");
+        exit(1);
+      }
+      swaps = pari_realloc(swaps, newdepth * sizeof(int));
+      if (!swaps) {
+        printf("Insufficient memory to pari_reallocate the swaps.\n");
+        exit(1);
+      }
+      for (i = maxdepth; i < newdepth; i++) swaps[i] = 0;/*recalloc does not exist.*/
+      maxdepth = newdepth;
+    }
+  }
+  contfrac_tail_missing_tofile(miss, blocks, Bmin, Bmax);/*Print to file.*/
+  /*Time to free all of the allocated memory.*/
+  pari_free(swaps);
+  pari_free(depthseq);
+  pari_free(miss);
+  pari_free(bitswap);
+  return;
+}
+
+/*Prints the found data to a file.*/
+static void
+contfrac_tail_missing_tofile(unsigned long *miss, long blocks, long Bmin, long Bmax)
+{
+  if (!pari_is_dir("missing")) {/*Checking the directory*/
+    int s = system("mkdir -p missing");
+    if (s == -1) pari_err(e_MISC, "ERROR CREATING DIRECTORY missing");
+  }
+  char *fname = stack_sprintf("missing/contfrac_tail_%ld-to-%ld.dat", Bmin, Bmax);
+  long i;
+  FILE *F = fopen(fname, "w");/*Now we have created the output file f.*/
+  for (i = 0; i < blocks; i++) {/*The ith block*/
+    unsigned long val = miss[i];
+    long v;
+    for (v = 0; v < 64; v++) {
+      if (!(val & 1)) {/*A missing value*/
+        long n = Bmin + (i << 6) + v;
+        if (n <= Bmax) fprintf(F, "%ld\n", n);/*Print it to the file.*/
+      }
+      val >>= 1;/*Shift right one.*/
+    }
+  }
+  fclose(F);
+}
+
+/*Loads the saved file of missing denominators.*/
+static GEN
+contfrac_tail_missing_load(long Bmin, long Bmax)
+{
+  pari_sp av = avma;
+  char *fname = stack_sprintf("missing/contfrac_tail_%ld-to-%ld.dat", Bmin, Bmax);
+  return gerepileupto(av, gp_readvec_file(fname));/*Load them up!*/
 }
 
 

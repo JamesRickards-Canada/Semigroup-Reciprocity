@@ -20,6 +20,7 @@ int psi_rep(long x, long y, long n, long entry);
 GEN contfraceven(GEN q);
 GEN contfractoQ(GEN v);
 GEN contfractoword(GEN v);
+GEN contfrac_tail_missing(GEN bounds, int load);
 
 /*SECTION 5: LINEAR REGRESSION*/
 GEN OLS(GEN X, GEN y, int retrsqr);

@@ -3,7 +3,7 @@ parigp_version=version();
 semigroup_library=strprintf("./libsemigroup-%d-%d.so", parigp_version[1], parigp_version[2]);
 
 /*semigroup.c*/
-  addhelp(semigroup,"Basic (semi)group methods:\n\tLRword, semigroup_growth, semigroup_mats, semigroup_mgens.\n\nSemigroup orbits:\n\tsemigroup_missing, semigroup_missing_parabolic, semigroup_missinglist, semigroup_orbit.\n\nPsi methods:\n\tpsi_mats, psi_rep.\n\nContinued fractions:\n\tcontfraceven, contfractoQ, contfractoword.\n\nLinear regression:\n\tOLS, OLS_nointercept, OLS_single, rsquared.\n\nPaper methods:\n\nTesting:\n\trunalltests, test_evencontfrac, test_gamma14geq0_kronequal, test_kronaction, test_kronaction_many, test_psioogens, test_psisemigroup, test_table1_psi, test_table1_psi_many.\n\nSupplementary computations:\n\ttest_psi_23orbit, test_psi1_23orbit, test_psi1_hdim, test_table1_psi1, test_table1_psi1_many.\n\nSupporting methods:\n\tgamma14geq_random, psi_random, sl2zgeq0_random, oddpart, psi_isreciprocity, psi_missingsquares, psi1_missingsquares, table1_line.");
+  addhelp(semigroup,"Basic (semi)group methods:\n\tLRword, semigroup_growth, semigroup_mats, semigroup_mgens.\n\nSemigroup orbits:\n\tsemigroup_missing, semigroup_missing_parabolic, semigroup_missinglist, semigroup_orbit.\n\nPsi methods:\n\tpsi_mats, psi_rep.\n\nContinued fractions:\n\tcontfraceven, contfractoQ, contfractoword, contfrac_tail_missing.\n\nLinear regression:\n\tOLS, OLS_nointercept, OLS_single, rsquared.\n\nPaper methods:\n\nTesting:\n\trunalltests, test_evencontfrac, test_gamma14geq0_kronequal, test_kronaction, test_kronaction_many, test_psioogens, test_psisemigroup, test_table1_psi, test_table1_psi_many.\n\nSupplementary computations:\n\ttest_psi_23orbit, test_psi1_23orbit, test_psi1_hdim, test_table1_psi1, test_table1_psi1_many.\n\nSupporting methods:\n\tgamma14geq_random, psi_random, sl2zgeq0_random, oddpart, psi_isreciprocity, psi_missingsquares, psi1_missingsquares, table1_line.");
   
 /*SECTION 1: BASIC (SEMI)GROUP METHODS*/
   install(LRword,"G",,semigroup_library);
@@ -38,6 +38,8 @@ semigroup_library=strprintf("./libsemigroup-%d-%d.so", parigp_version[1], parigp
   addhelp(contfractoQ,"contfractoQ(v): returns the rational number corresponding to the continued fraction v.");
   install(contfractoword,"G");
   addhelp(contfractoword,"contfractoword(v): given an even length continued fraction [a0;a1, a2, ..., a(2n-1)] with a0>=0, this returns the corresponding word W in SL(2, Z), i.e. W=L^a0*R^a1*...*L^a(2n-2)*R^a(2n-1), where L=[1,1;0,1] and R=[1,0;1,1]. In particular, W[1,0]~=[x,y], where contfraceven(x/y)=v. If v has odd length, we convert it to having even length.");
+  install(contfrac_tail_missing,"GD1,L,");
+  addhelp(contfrac_tail_missing,"contfrac_tail_missing(bounds, load): searches for the continued fractions of the form [4a_0;4a_1,...,4a_n,a_{n+1},1,2] with denoninator to to bounds (or between B1 and B2, if bounds=[B1, B2]), saving to a file those that are missing, and loading them if load=1.");
 
 /*SECTION 5: LINEAR REGRESSION*/
   install(OLS,"GGD1,L,");

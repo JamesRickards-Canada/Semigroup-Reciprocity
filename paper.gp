@@ -12,28 +12,30 @@
 
 /*Run tests for all of the testing methods we wrote.*/
 runalltests() = {
-  printf("Let's computationally tests various claims made in the paper.\n\n\n");
+  printf("Let's computationally test various claims made in the paper.\n\n\n");
   printf("To begin, let's test that even continued fractions correspond to LR words.\n");
   test_evencontfrac(20000, 3000);
-  printf("\n\n\nNext, let's check Lemma 3.1 that the Kronecker symbol of any row or column of an element of Gamma_1(4)^{>=0} is constant.\n");
+  printf("\n\nNext, let's check Lemma 3.1 that the Kronecker symbol of any row or column of an element of Gamma_1(4)^{>=0} is constant.\n");
   test_gamma14geq0_kronequal(20000, 3000);
-  printf("\n\n\nNext, let's check Lemma 3.4 about the formula for kronecker(ax+by, cx+dy) in terms of kronecker(x, y) when [a,b;c,d] is a matrix in SL(2, Z)^{>=0}.\n");
+  printf("\n\nNext, let's check Lemma 3.4 about the formula for kronecker(ax+by, cx+dy) in terms of kronecker(x, y) when [a,b;c,d] is a matrix in SL(2, Z)^{>=0}.\n");
   test_kronaction_many(2000, 3000, 1, 70);
-  printf("\n\n\nNext, let's check that Psi is a semigroup.\n");
+  printf("\n\nNext, let's check that Psi is a semigroup.\n");
   test_psisemigroup(20000, 3000);
-  printf("\n\n\nNext, let's check that Table 1 gives a correct and complete list of reciprocity obstructions for Psi, i.e. Theorem 2.6.\n");
+  printf("\n\nNext, let's check that Table 1 gives a correct and complete list of reciprocity obstructions for Psi, i.e. Theorem 2.6.\n");
   test_table1_psi_many();
-  printf("\n\n\nNext, let's check that Table 1 gives a correct and complete list of reciprocity obstructions for Psi_1, i.e. Conjecture 2.14.\n");
+  printf("\n\nNext, let's check that Table 1 gives a correct and complete list of reciprocity obstructions for Psi_1, i.e. Conjecture 2.13.\n");
   test_table1_psi1_many();
-  printf("\n\n\nNext, let's check that the matrices M_k must appear in any set of generators for Psi.\n");
+  printf("\n\nOne orbit did not work! Let's increase B to 400 and see if it works now.\n");
+  if (test_table1_psi1([143, 190], 400, 1), printf("Square found!\n"), printf("No square found. Is B too small or is the conjecture false?"));
+  printf("\n\nNext, let's check that the matrices M_k must appear in any set of generators for Psi.\n");
   test_psioogens(60);
-  printf("\n\n\nNext, let's check that the numerators in the orbit of Psi*[2, 3]~ are as claimed in Theorem 2.7.\n");
+  printf("\n\nNext, let's check that the numerators in the orbit of Psi*[2, 3]~ are as claimed in Theorem 2.7.\n");
   test_psi_23orbit();
-  printf("\n\n\nNext, let's estimate the Hausdorff dimension of Psi_1.\n");
+  printf("\n\nNext, let's estimate the Hausdorff dimension of Psi_1.\n");
   test_psi1_hdim();
-  printf("\n\n\nFinally, let's check the numerators in the orbit of Psi_1*[2, 3]~ up to 10^7 to get Conjecture 2.15. This may take half a minute.\n");
+  printf("\n\nFinally, let's check the numerators in the orbit of Psi_1*[2, 3]~ up to 10^7 to get Conjecture 2.14. This may take half a minute.\n");
   test_psi1_23orbit();
-  printf("\n\n\nAll standard tests complete!! No critical errors found.\n");
+  printf("\n\nAll standard tests complete!! No critical errors found.\n");
 }
 
 /*Tests that the even continued fraction does correspond to orbits of [1,0]~ as described at the start of section 2. We pick random positive rational numbers x/y with 1<=x,y<=B, and do this test n times.*/
