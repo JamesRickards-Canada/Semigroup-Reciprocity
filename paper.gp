@@ -17,7 +17,7 @@ runalltests() = {
   test_evencontfrac(20000, 3000);
   printf("\n\nNext, let's check Lemma 3.1 that the Kronecker symbol of any row or column of an element of Gamma_1(4)^{>=0} is constant.\n");
   test_gamma14geq0_kronequal(20000, 3000);
-  printf("\n\nNext, let's check Lemma 3.4 about the formula for kronecker(ax+by, cx+dy) in terms of kronecker(x, y) when [a,b;c,d] is a matrix in SL(2, Z)^{>=0}.\n");
+  printf("\n\nNext, let's check Proposition 3.2 about the formula for kronecker(ax+by, cx+dy) in terms of kronecker(x, y) when [a,b;c,d] is a matrix in SL(2, Z)^{>=0}.\n");
   test_kronaction_many(2000, 3000, 1, 70);
   printf("\n\nNext, let's check that Psi is a semigroup.\n");
   test_psisemigroup(20000, 3000);
@@ -27,7 +27,7 @@ runalltests() = {
   test_table1_psi1_many();
   printf("\n\nOne orbit did not work! Let's increase B to 400 and see if it works now.\n");
   if (test_table1_psi1([143, 190], 400, 1), printf("Square found!\n"), printf("No square found. Is B too small or is the conjecture false?"));
-  printf("\n\nNext, let's check that the matrices M_k must appear in any set of generators for Psi.\n");
+  printf("\n\nNext, let's check that the matrices M_k (from Lemma 7.7) must appear in any set of generators for Psi.\n");
   test_psioogens(60);
   printf("\n\nNext, let's check that the numerators in the orbit of Psi*[2, 3]~ are as claimed in Theorem 2.7.\n");
   test_psi_23orbit();
@@ -65,7 +65,7 @@ test_gamma14geq0_kronequal(n, B) = {
   printf("All tests passed.\n");
 }
 
-/*Tests Proposition 3.4: M=[a, b;c, d] in SL(2, Z)^{>=0} a, b, c, d >= 0, x, y>=0 coprime, gcd(x, d)=1, this proposition gives a formula for kron(ax+by/cx+dy). This function returns 1 if and only if the formula is correct for the given inputs.*/
+/*Tests Proposition 3.2: M=[a, b;c, d] in SL(2, Z)^{>=0} a, b, c, d >= 0, x, y>=0 coprime, gcd(x, d)=1, this proposition gives a formula for kron(ax+by/cx+dy). This function returns 1 if and only if the formula is correct for the given inputs.*/
 test_kronaction(M, xy) = {
   my(x, y, a, b, c, d, A, B, cxpdy, C, D, alpha, mu);
   x = xy[1]; y = xy[2];
@@ -87,7 +87,7 @@ test_kronaction(M, xy) = {
   return(kronecker(a * x + b * y, cxpdy) * (-1)^(alpha) * mu * kronecker(c, d) * kronecker(x, y));
 }
 
-/*Tests Proposition 3.4 by calling test_kronaction on n random matrices in SL(2, Z)^{>=0} with entries bounded by B. The values of x, y tried are all valid pairs with xymin<=x, y<=xymax*/
+/*Tests Proposition 3.2 by calling test_kronaction on n random matrices in SL(2, Z)^{>=0} with entries bounded by B. The values of x, y tried are all valid pairs with xymin<=x, y<=xymax*/
 test_kronaction_many(n, B, xymin, xymax) = {
   my(M);
   printf("Testing %d random matrices with coefficients at most %d and all valid pairs [x, y]~ where %d<=x, y<=%d:\n", n, B, xymin, xymax);
