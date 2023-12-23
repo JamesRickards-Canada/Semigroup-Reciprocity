@@ -2,7 +2,7 @@
 
 This repository is supplementary to the paper "Reciprocity obstructions in semigroup orbits in $\text{SL}(2, \mathbb{Z})$, with applications to Zaremba's conjecture", by James Rickards and Katherine E. Stange (preprint forthcoming).
 
-The goal of the package is to efficiently compute data about certain orbits of semigroups. Certain methods have been optimized to be able to compute extremely large orbits. The file "paper.gp" is aimed at verifying and recreating various claims in the paper.
+The goal of the package is to efficiently compute data about certain orbits of semigroups. Some methods have been optimized to be able to compute extremely large orbits. The file "paper.gp" is aimed at verifying and recreating various claims in the paper.
 
 See the final sections for information on how to install the package. You need to be running PARI/GP on a Linux based system. If you are running Windows, then you must use Windows Subsystem for Linux (WSL).
 
@@ -27,6 +27,7 @@ Semigroup orbits:
 
 Testing:
 * ```runalltests```: run all the tests in paper.gp, which aims to computationally test many of the claims made in the paper, as well as provide supplemental computations.
+* ```contfrac_tail_missing```: searches for positive integers that cannot be denominators of rational numbers of the form $[0;4a_1,4a_2,...,4a_n,a_{n+1},1,2]$.
 
 ## Installation
 1. ```git clone``` this repository, and enter the folder created.
