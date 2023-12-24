@@ -919,10 +919,40 @@ kron_seq_both(unsigned long n)
   long M;
   int *kvals = get_kron_vals(n, &M);
   /*Now we go through and compute the longest subsequence without both 1 and -1.*/
-  M = 0;
+  long firstm1 = 2;/*kron(0/n)=0, kron(1/n)=1.*/
+  while (kvals[firstm1] != -1) firstm1++;/*Tracks the first -1, which is guaranteed to exist as n is not a square.*/
+  long longest = 0, i = firstm1 + 1, lastind = firstm1 - 1;/*Initially, one before the first minus 1*/
+  /*We seek out the longest consecutive sequences of >=0 and <=0, and return this number plus 1.*/
+  for (;;) {/*Entering, we are seeking 0, -1;s*/
+    while (!kvals[lastind]) lastind--;/*Can't go into the negatives, gated by 1*/
+    lastind++;/*Now kvals[lastind-1] = 1, everything between lastind and i is 0 or -1.*/
+    while (i < M && kvals[i] < 1) i++;
+    if (i == M) {/*Done, no overflow.*/
+      long final = M - lastind + 1;/*Final sequence from lastind to M-1, then looping around to 0*/
+      if (final > longest) longest = final;
+      /*Note that kvals[M-1]=-1 necessarily, so no need to backtrack*/
+      if (firstm1 > longest) longest = firstm1;/*Initial sequence, starts at 0 to firstm1 - 1.*/
+      break;
+    }
+    /*Now the sequence is from lastind to i-1, as kvals[i] = 1.*/
+    long slen = i - lastind;
+    if (slen > longest) longest = slen;
+    lastind = i - 1;
+    while (!kvals[lastind]) lastind--;/*Now go backwards*/
+    lastind++;/*Now kvals[lastind-1] = -1, everything between lastind and i is 0 or 1.*/
+    while (i < M && kvals[i] > -1) i++;
+    if (i == M) {/*Done, overflow.*/
+      long final = M - lastind + firstm1;/*Final sequence from lastind to M-1, then looping around from 0 to firstm1-1*/
+      if (final > longest) longest = final;
+      break;
+    }
+    /*Now the sequence is from lastind to i-1, as kvals[i] = -1.*/
+    slen = i - lastind;
+    if (slen > longest) longest = slen;
+    lastind = i - 1;
+  }
   pari_free(kvals);
-  set_avma(av);
-  return 0;
+  return gc_long(av, longest + 1);
 }
 
 /*Does kron_all, except returns a malloc'ed C array, and updates len to the length.*/
@@ -989,7 +1019,6 @@ get_kron_vals(unsigned long n, long *len)
   *len = M;
   return kvals;
 }
-
 
 /*Returns all the matrices in Psi with maximum entry N.*/
 GEN
