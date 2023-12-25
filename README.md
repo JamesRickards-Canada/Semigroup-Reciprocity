@@ -29,7 +29,13 @@ Testing:
 * ```runalltests```: run all the tests in paper.gp, which aims to computationally test many of the claims made in the paper, as well as provide supplemental computations.
 * ```contfrac_tail_missing```: searches for positive integers that cannot be denominators of rational numbers of the form $[0;4a_1,4a_2,...,4a_n,a_{n+1},1,2]$.
 
+Parallel:
+* ```cfracsearch```: a separate C program used to compute positive integers that cannot be denominators of rational numbers of the form $[0;4a_1,4a_2,...,4a_n,a_{n+1},1,2]$. This is essentially ```contfrac_tail_missing```, except it is parallelized, and therefore a fair bit more efficient. WARNING: memory usage scales linearly with the number of threads. For example, computing to $10^{11}$ on 12 threads takes around 150GB of memory.
+
 ## Installation
+
+### Main PARI/GP package:
+
 1. ```git clone``` this repository, and enter the folder created.
 
 2. You need to know where the version of PARI/GP you want to use is installed. The default location is inside /usr/local, but this may change based on your Linux distro, or if you want to use it through SageMath. If you think it is installed in the default location, you can simply call ```make```.
@@ -41,6 +47,12 @@ Testing:
 5. Call ```gp semigroup``` to start gp and load the methods. ```?semigroup``` accesses the help
 
 6. Call ```make clean``` to clean up the object files (.o) created.
+
+### cfracsearch
+
+1. After cloning the repository, call ```make cfracsearch``` to compile it.
+   
+2. Call ```./cfracsearch 10 5000 8``` to compute the missing denominators between 10 and 5000 (inclusive), using 8 threads.
 
 ## Troubleshooting installation
 
