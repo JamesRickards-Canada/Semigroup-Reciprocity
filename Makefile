@@ -41,9 +41,10 @@ $(DYN): $(OBJS)
 #Clear all .o files
 clean:
 	$(RM) *.o $(ALL)
+	$(RM) cfracsearch
 	
 #Compile parallel continued fraction program
-cfracpar:
+cfracsearch:
 	$(CC) cfracsearch.c -o cfracsearch -O3 -pthread
 
 #Finds where pari/gp is installed and saves it to pari_loc.txt for the future.
