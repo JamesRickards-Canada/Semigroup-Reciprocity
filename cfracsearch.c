@@ -20,10 +20,11 @@ typedef struct _cfrac_t {/*[0;4a_n,...,4a_1,k,1,2]. The threads start with eithe
   long Bmax;
   int Nthreads;
   atomic_uint *found;/*The found denominators, using atomic rather than mutexing since it is done so much.*/
-  /*We want to break up the first few values of k since they really dominate (we don't want 1 thread still running while the others are all done). Similarly, after a certain point, we should just assign each thread to look at that class modulo Nthreads, since the continual mutexing is a lot of wastage. */
+  /*We want to break up the first few values of k since they really dominate (we don't want 1 thread still running while the others are all done). Similarly, after a certain point, we should just assign each thread to look at that class modulo Nthreads, since the continual mutexing is a lot of wastage.*/
   long Ninitial;/*The number of precomputed numerator and denominator pairs to run through.*/
   unsigned long *den0;/*The vector of initial den[0]'s*/
   unsigned long *den1;/*The vector of initial den[1]'s*/
+  int *starttype;/*If 1, then we also replace den[1] by den[1]+4den[0], den[1]+8den[8], etc., as this is one of the "infinite" families.*/
   long *initialdentodo;/*The smallest den[i] task not yet done, -1 once done.*/
   long *kdentodo;/*The smallest value of (regular) k to do.*/
   long stoptodo;/*After this, we just run though k in an arithmetic progression modulo Nthreads.*/
@@ -60,25 +61,36 @@ main(int argc, char *argv[])
   long nblocks = ((Bdiff - 1) >> 5) + 1;
   atomic_uint *found = (atomic_uint *)calloc(nblocks, sizeof(atomic_uint));/*Stores the found denominators*/
   if (!found) {printf("Insufficient memory to store the denominators found.\n"); exit(1); }
-  long Ninitial = (Nthreads + 5);
-  Ninitial = Ninitial * Ninitial ;/*Go Nthreads + 5 deep on the first 2.*/
+  long Ninitial = Nthreads + 1;
+  Ninitial = Ninitial * Ninitial * Ninitial + Ninitial;/*Go 3 deep on the first Nthreads + 1.*/
   unsigned long *den0 = (unsigned long *)malloc(Ninitial * sizeof(unsigned long));
   unsigned long *den1 = (unsigned long *)malloc(Ninitial * sizeof(unsigned long));
+  int *starttype = (int *)malloc(Ninitial * sizeof(int));
   long k, a1, a2, ind = 0;
   if (3 <= Bmax) found_update(found, Bmin, 3);/*Denominator of 3*/
-  for (k = 1; k <= Nthreads + 5; k++) {/*Let's go a two levels deep for the first few entries.*/
+  for (k = 1; k <= Nthreads + 1; k++) {/*Let's go a three levels deep for the first Nthreads + 1 entries.*/
     long d = 3 * k + 2;/*The denominator*/
-    if (d <= Bmax) found_update(found, Bmin, d);/*We add the first 1 only, no need for the second since that is done in the thread.*/
-    for (a1 = 1; a1 <= Nthreads + 5; a1++) {
-      long e = (a1 << 2) * d + 3;
-      den0[ind] = d;/*Add 'em in!*/
-      den1[ind] = e;
-      ind++;
+    if (d <= Bmax) found_update(found, Bmin, d);
+    for (a1 = 1; a1 <= Nthreads + 1; a1++) {
+      long e = (a1 << 2) * d + 3;/*Next one*/
+      if (e <= Bmax) found_update(found, Bmin, e);
+      for (a2 = 1; a2 <= Nthreads + 1; a2++) {
+        long f = (a2 << 2) * e + d;/*Don't update f now, done in the threads.*/
+        den0[ind] = e;/*Add 'em in!*/
+        den1[ind] = f;
+        starttype[ind] = (a2 <= Nthreads) ? 0 : 1;/*Last a2 value, we tell this thread to continue to oo.*/
+        ind++;
+      }
     }
+    long e = ((Nthreads + 2) << 2) * d + 3;/*Next one after last pair (d, e) we did. We must also continune this to oo.*/
+    den0[ind] = d;
+    den1[ind] = e;
+    starttype[ind] = 1;
+    ind++;
   }
   pthread_t thread_id[Nthreads];/*The thread ids*/
   cfrac_t data[Nthreads];
-  long initialdentodo = 0, kdentodo = Nthreads + 6;/*We did up to Nthreads + 5 in the first three levels.*/
+  long initialdentodo = 0, kdentodo = Nthreads + 2;/*We did up to Nthreads + 1 in the first three levels.*/
   long stoptodo = (Bmax >> 20) + Nthreads + 100;/*Don't think this matters too much as long as it's moderately small.*/
   for (i = 0; i < Nthreads; i++) {/*Initialize the structures holding our data.*/
     data[i].myid = i;
@@ -89,6 +101,7 @@ main(int argc, char *argv[])
     data[i].Ninitial = Ninitial;
     data[i].den0 = den0;
     data[i].den1 = den1;
+    data[i].starttype = starttype;
     data[i].initialdentodo = &initialdentodo;
     data[i].kdentodo = &kdentodo;
     data[i].stoptodo = stoptodo;
@@ -97,6 +110,7 @@ main(int argc, char *argv[])
   for (i = 0; i < Nthreads; i++) pthread_create(&thread_id[i], NULL, cfrac_par, (void *)&data[i]);/*Make the threads.*/
   for (i = 0; i < Nthreads; i++) pthread_join(thread_id[i], NULL);/*Wait for them to all finish.*/
   pthread_mutex_destroy(&mutex_cfrac);/*Eliminate the mutex*/
+  free(starttype);
   free(den1);
   free(den0);
   clock_gettime(CLOCK_MONOTONIC, &finish);
@@ -168,9 +182,9 @@ cfrac_par(void *args)
   if (!dens) { printf("Insufficient memory to store the denominator sequence.\n"); exit(1); }
   for (;;) {/*Where we execute going through den[0] and den[1]*/
     pthread_mutex_lock(&mutex_cfrac);/*Retrieve the next denominators*/
-    int cont = 0;/*1 if we are at the last value through the initial k's, and should continue on with the rest of the a_1's.*/
     long *next = data -> initialdentodo;
-    if (*next == -1) {/*Done the initial part.*/
+    int cont = 0;/*1 if we are at the last value through the initial k's, and should continue on with the rest of the a_1's, i.e. replacing den[1] with den[1]+4w*den[0].*/
+    if (*next == -1) {/*Done the initial part, cont=0 here..*/
       next = data -> kdentodo;
       if (*next > (data -> stoptodo)) break;/*Moving on to the arithmetic sequences of k's.*/
       dens[0] = 3;
@@ -180,9 +194,9 @@ cfrac_par(void *args)
     else {/*In the initial part.*/
       dens[0] = (data -> den0)[*next];
       dens[1] = (data -> den1)[*next];
+      cont = (data -> starttype)[*next];
       (*next)++;/*Increment.*/
-      if (*next == Ninitial) { *next = -1; cont = 1; }/*Done! Also, continue on the next time.*/
-      else if ((data -> den0)[*next] > (data -> den0)[*next - 1]) cont = 1;/*Last one for this value of k, need to continue on.*/
+      if (*next == Ninitial) *next = -1;/*Done! Also, continue on the next time.*/
     }
     pthread_mutex_unlock(&mutex_cfrac);/*Unlock it.*/
     if (dens[1] > Bmax) continue;/*Nothing to do here.*/
