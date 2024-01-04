@@ -1,10 +1,10 @@
 # Semigroup-Reciprocity
 
-This repository is supplementary to the paper "Reciprocity obstructions in semigroup orbits in $\text{SL}(2, \mathbb{Z})$, with applications to Zaremba's conjecture", by James Rickards and Katherine E. Stange (preprint forthcoming).
+This repository is supplementary to the [paper](https://arxiv.org/abs/2401.01860)  "Reciprocity obstructions in semigroup orbits in $\text{SL}(2, \mathbb{Z})$", by James Rickards and Katherine E. Stange.
 
-The goal of the package is to efficiently compute data about certain orbits of semigroups. Some methods have been optimized to be able to compute extremely large orbits. The file "paper.gp" is aimed at verifying and recreating various claims in the paper.
+The goal of the package is to efficiently compute data about certain orbits of semigroups. Some methods have been optimized to be able to compute extremely large orbits. The files "paper.gp" and "cfracsearch.c" are aimed at verifying and recreating various claims in the paper.
 
-See the final sections for information on how to install the package. You need to be running PARI/GP on a Linux based system. If you are running Windows, then you must use Windows Subsystem for Linux (WSL).
+See the final sections for information on how to install the package. You need to be running PARI/GP on a Linux based system. If you are running Windows, then you must use Windows Subsystem for Linux (WSL). See this [tutorial](https://pari.math.u-bordeaux.fr/PDF/PARIwithWindows.pdf) for getting started with PARI/GP on WSL.
 
 ## Semigroups
 For the purposes of this package, a semigroup is finitely generated, specified by a vector of $n\times n$ matrices of infinite order and non-zero determinant with nonnegative integer entries. This will typically be a subsemigroup of $\text{SL}(n, \mathbb{Z})^{\geq 0}$.
@@ -52,7 +52,7 @@ Parallel:
 
 1. After cloning the repository, call ```make cfracsearch``` to compile it.
    
-2. Call ```./cfracsearch 10 5000 8``` to compute the missing denominators between 10 and 5000 (inclusive), using 8 threads.
+2. Call ```./cfracsearch 10 5000 8``` to compute the missing denominators between 10 and 5000 (inclusive), using 8 threads (with reference to Corollary 2.20 and Conjecture 2.21 of the [paper](https://arxiv.org/abs/2401.01860)).
 
 ## Troubleshooting installation
 
