@@ -295,6 +295,7 @@ sl2zgeq0_random(n) = {
     );
     if (c == 0, return([1, random(n + 1);0, 1]));
     d = lift(1 / Mod(a, c));
+    if (!d, d = 1);/*If c=1, d may equal 0, which is a problem as then b=-1.*/
     b = (a * d - 1) / c;/*Solve for minimal nonnegative b, d*/
     bd = floor((n - b) / a);
     bd = min(bd, floor((n - d) / c));/*See if we can shift them higher; pick a random shift. If either b,d>n initially, then we just redo it all.*/
