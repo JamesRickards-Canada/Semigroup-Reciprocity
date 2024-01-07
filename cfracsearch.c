@@ -2,6 +2,7 @@
   Parallel implementation of contfrac_tail_missing in C.
   
   Compile with: cc cfracsearch.c -o cfracsearch -O3 -pthread
+            OR: make cfracsearch
       Run with: ./cfracsearch Bmin Bmax Nthreads
 */
 
