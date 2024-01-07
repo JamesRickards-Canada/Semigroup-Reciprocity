@@ -14,7 +14,7 @@
 #include <stdatomic.h>
 #include <time.h>
 
-typedef struct _cfrac_t {/*[0;4a_n,...,4a_1,k,1,2]. The threads start with either [4a_1, k, 1, 2] or [k, 1, 2]*/
+typedef struct _cfrac_t {/*For doing depth first search on [0;4a_n,...,4a_1,k,1,2].*/
   int myid;
   long Bmin;
   long Bmax;
@@ -24,7 +24,7 @@ typedef struct _cfrac_t {/*[0;4a_n,...,4a_1,k,1,2]. The threads start with eithe
   long Ninitial;/*The number of precomputed numerator and denominator pairs to run through.*/
   unsigned long *den0;/*The vector of initial den[0]'s*/
   unsigned long *den1;/*The vector of initial den[1]'s*/
-  int *starttype;/*If 1, then we also replace den[1] by den[1]+4den[0], den[1]+8den[8], etc., as this is one of the "infinite" families.*/
+  int *starttype;/*If 1, then we also replace den[1] by den[1]+4den[0], den[1]+8den[0], etc., as this is one of the "infinite" families.*/
   long *initialdentodo;/*The smallest den[i] task not yet done, -1 once done.*/
   long *kdentodo;/*The smallest value of (regular) k to do.*/
   long stoptodo;/*After this, we just run though k in an arithmetic progression modulo Nthreads.*/
@@ -41,7 +41,7 @@ static inline void
 found_update(atomic_uint *found, long Bmin, long N)
 {
   long shifted = N - Bmin;
-  if (shifted < 0) return;
+  if (shifted < 0) return;/*Checking that N<=Bmax is assumed to have already taken place.*/
   long v = shifted % 32;
   long u = shifted >> 5;/*shifted = 32*u+v. u gives the entry of the array, v gives the bit to swap.*/
   found[u] |= ((unsigned int) 1) << v;
