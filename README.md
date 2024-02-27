@@ -37,6 +37,8 @@ System requirements:
 * Linux/Mac: none that I am aware of;
 * Windows: you need to be running PARI/GP through WSL. See this [tutorial](https://pari.math.u-bordeaux.fr/PDF/PARIwithWindows.pdf) for how to set this up.
 
+This package has been tested on PARI/GP version 2.15.2 and 2.16.2, and should work on 2.15.0 and later.
+
 ### Main PARI/GP package:
 You need to know where the version of PARI/GP you want to use is installed, in particular, the file ```pari.cfg```. The default location is ```/usr/local/lib/pari/pari.cfg```.
 * If this is the correct location, call ```make``` to build the project.
