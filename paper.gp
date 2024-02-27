@@ -23,17 +23,17 @@ runalltests() = {
   test_psisemigroup(20000, 3000);
   printf("\n\nNext, let's check that Table 1 gives a correct and complete list of reciprocity obstructions for Psi, i.e. Theorem 2.6.\n");
   test_table1_psi_many();
-  printf("\n\nNext, let's check that Table 1 gives a correct and complete list of reciprocity obstructions for Psi_1, i.e. Conjecture 2.13.\n");
+  printf("\n\nNext, let's check that Table 1 gives a correct and complete list of reciprocity obstructions for Psi_1, i.e. Conjecture 2.14.\n");
   test_table1_psi1_many();
   printf("\n\nOne orbit did not work! Let's increase B to 400 and see if it works now.\n");
   if (test_table1_psi1([143, 190], 400, 1), printf("Square found!\n"), printf("No square found. Is B too small or is the conjecture false?"));
   printf("\n\nNext, let's check that the matrices M_k (from Lemma 7.7) must appear in any set of generators for Psi.\n");
   test_psioogens(60);
-  printf("\n\nNext, let's check that the numerators in the orbit of Psi*[2, 3]~ are as claimed in Theorem 2.7.\n");
+  printf("\n\nNext, let's check that the numerators in the orbit of Psi*[2, 3]~ are as claimed in Theorem 2.8.\n");
   test_psi_23orbit();
   printf("\n\nNext, let's estimate the Hausdorff dimension of Psi_1.\n");
   test_psi1_hdim();
-  printf("\n\nFinally, let's check the numerators in the orbit of Psi_1*[2, 3]~ up to 10^7 to get Conjecture 2.14. This may take half a minute.\n");
+  printf("\n\nFinally, let's check the numerators in the orbit of Psi_1*[2, 3]~ up to 10^7 to get Conjecture 2.15. This may take half a minute.\n");
   test_psi1_23orbit();
   printf("\n\nAll standard tests complete!! No critical errors found.\n");
 }
