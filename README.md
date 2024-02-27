@@ -33,31 +33,30 @@ Parallel:
 * ```cfracsearch```: a separate C program used to compute positive integers that cannot be denominators of rational numbers of the form $[0;4a_1,4a_2,...,4a_n,a_{n+1},1,2]$. This is essentially ```contfrac_tail_missing```, except it is parallelized, and therefore is much more efficient.
 
 ## Installation
+System requirements:
+* Linux/Mac: none that I am aware of;
+* Windows: you need to be running PARI/GP through WSL. See this [tutorial](https://pari.math.u-bordeaux.fr/PDF/PARIwithWindows.pdf) for how to set this up.
 
 ### Main PARI/GP package:
+You need to know where the version of PARI/GP you want to use is installed, in particular, the file ```pari.cfg```. The default location is ```/usr/local/lib/pari/pari.cfg```.
+* If this is the correct location, call ```make``` to build the project.
+* Otherwise, call ```make setup``` to search for the location of the file. By default the program searches in ```/usr```, but there is a chance it is not installed there (this sometimes happens on a server). If this is the case, you can supply an alternate location.
+* If the program finds potential matches, it will ask you to confirm which files are correct, and saves them to ```paricfg_loc.txt```. Once this step completes, a call to ```make``` will compile the project! Modifying the program (e.g. via ```git pull```) won't require redoing this setup, unless the version of PARI/GP you use changes.
 
-1. ```git clone``` this repository, and enter the folder created.
+Call ```gp semigroup``` to start gp and load the methods. ```?semigroup``` accesses the help.
 
-2. You need to know where the version of PARI/GP you want to use is installed. The default location is inside /usr/local, but this may change based on your Linux distro, or if you want to use it through SageMath. If you think it is installed in the default location, you can simply call ```make```.
-
-3. Otherwise, call ```make setup``` to search for the correct files. By default the program searches in ```/usr```, but there is a chance it is not installed there (this sometimes happens on a server). If this is the case, you can supply an alternate location.
-
-4. If the program finds potential matches, it will ask you to confirm which files are correct, and saves them to "pari_loc.txt". Once this step completes, a call to ```make``` will compile the project! Modifying the program (e.g. via ```git pull```) won't require redoing this setup, unless the version of PARI/GP or Sage you use changes.
-
-5. Call ```gp semigroup``` to start gp and load the methods. ```?semigroup``` accesses the help
-
-6. Call ```make clean``` to clean up the object files (.o) created.
+Call ```make clean``` to clean up the object files (.o) created.
 
 ### cfracsearch
 
 1. After cloning the repository, call ```make cfracsearch``` to compile it.
    
-2. Call ```./cfracsearch 10 5000 8``` to compute the missing denominators between 10 and 5000 (inclusive), using 8 threads (with reference to Corollary 2.20 and Conjecture 2.21 of the [paper](https://arxiv.org/abs/2401.01860)).
+2. Call ```./cfracsearch 10 5000 8``` to compute the missing denominators between 10 and 5000 (inclusive), using 8 threads (with reference to Corollary 2.21 and Conjecture 2.22 of the [paper](https://arxiv.org/abs/2401.01860)).
 
 ## Troubleshooting installation
 
 * **No library found**: the files were not found in the search location. Try asking to search in "/", which searches everywhere. This will be slow, but is guaranteed to find the correct files, if they exist.
-* **Wrong version**: Maybe you found the libraries, but there were warnings with ```make```. The likely cause is the version of PARI/GP you found was too old. If there are multiple copies of PARI/GP on your computer, then perhaps you chose the wrong one! Check the shared object file created: it will be called "libsemigroup-X-Y.so", where "X.Y" is the version of PARI/GP in the libraries. If this does not match the version you are using, then you found the wrong one!
+* **Wrong version**: Maybe you found the libraries, but there were warnings with ```make```. The likely cause is the version of PARI/GP you found was too old. If there are multiple copies of PARI/GP on your computer, then perhaps you chose the wrong one! Check the shared object file created: it will be called "libsemigroup-X-Y-Z.so", where "X.Y.Z" is the version of PARI/GP in the libraries. If this does not match the version you are using, then you found the wrong one!
 * **Miscellaneous**: when you compile with ```make```, object files (.o) are created. However, if the underlying code did not change, then nothing will happen. If you change the version of PARI/GP you are working with (or perhaps, trying different installations), then you should call ```make clean``` in between to clear out these object files. Otherwise, recompiling will do nothing!
 * If you are still having issues with installation, please get in touch, and I will try to help sort it out!
  
