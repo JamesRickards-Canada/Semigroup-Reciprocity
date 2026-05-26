@@ -1,15 +1,16 @@
-#The standard location for the file pari.cfg is /usr/local/lib/pari/pari.cfg. If this is the case, call "make" to get going. Otherwise, call "make setup", which helps you find the correct pari.cfg file, saving it in paricfg_loc.txt (this step can be manually done as well, if you know where it is saved to). After this, call "make" to get going. Calling "make clean" clears up the .o files.
+#Call "./configure" to configure the library, then "make" to build the project. "make clean" clears up the .o files.
 
-#The files we want to include
-OBJS = semigroup.o
 #Name of the output library
 TARGET = semigroup
 
+#The object files to build
+OBJS = semigroup.o
+
 #Nothing after here should be modified, unless you know what you are doing.
 
-#PARI_LIB is folder where libpari.so is found, PARI_INCLUDE is where the .h header files are found, and PARI_CFG is the location of pari.cfg.
-PARI_LOC = paricfg_loc.txt
-PARI_CFG = $(file < $(PARI_LOC))
+#PARI_LIB is folder where libpari.so/libpari.dylib is found, PARI_INCLUDE is where the pari.h header file is found, and PARI_CFG is the location of pari.cfg.
+PARI_LOC = $(TARGET).cfg
+PARI_CFG = $(shell grep "CFG=" "$(PARI_LOC)" -s | cut -d"'" -f2)
 ifeq ($(PARI_CFG), )
 	PARI_CFG = /usr/local/lib/pari/pari.cfg
 endif
@@ -25,47 +26,29 @@ CC = cc
 CFLAGS = -O3 -Wall -fno-strict-aliasing -fPIC -march=native
 RM = rm -f
 
+#System check as -shared option for linker fails on MacOS
+ifneq ($(shell uname -s), Darwin)
+    OS_FLAG = -Wl,-shared
+else
+    OS_FLAG =
+endif
+
 #Recipes
-all: $(DYN)
+all: $(DYN) cfracsearch
 
 #Build the shared library object
 $(DYN): $(OBJS)
-	$(CC) -o $@ -shared	$(CFLAGS) -Wl,-shared $(OBJS) -lc -lm -L$(PARI_LIB) -lpari
+	$(CC) -o $@ -shared	$(CFLAGS) $(OS_FLAG) $(OBJS) -lc -lm -L$(PARI_LIB) -lpari
 
 #Make the object files
 %.o: %.c
 	$(CC) -c $(CFLAGS) -I. -I$(PARI_INCLUDE) $<
 
+#Makes cfracsearch
+cfracsearch:
+	$(CC) cfracsearch.c -o cfracsearch -O3 -pthread
+
 #Clear all .o files
 clean:
 	$(RM) *.o $(ALL)
-
-#Finds where pari/gp is installed and saves it to paricfg_loc.txt for the future.
-setup:
-	@printf "We need to find the location of the \e[33mconfiguration file\e[0m (\e[32mpari.cfg\e[0m), which contains the location of the \e[33mcompiled library\e[0m (\e[32mlibpari.so\e[0m) and the \e[33mheader files\e[0m. The standard location is:\n\t\e[32m/usr/local/lib/pari/pari.cfg\e[0m,\nbut this can depend on the system.\nWhere should we look for \e[0m \e[32mpari.cfg\e[0m? (default is \e[32m/usr\e[0m)"
-	@read -r -p " " SEARCHLOC; \
-	if [ "$$SEARCHLOC" = "" ] ; then \
-		SEARCHLOC="/usr"; \
-	fi; \
-	printf "Searching for \e[32mpari.cfg\e[0m:\n"; \
-	FOUNDLOCS=$$(find $$SEARCHLOC -name pari.cfg 2>/dev/null); \
-	printf "Here are the places we found \e[32mpari.cfg\e[0m:\n\e[32m"; \
-	for poss in $$FOUNDLOCS; do \
-		printf "\t$$poss\n"; \
-	done; \
-	printf "\e[0mYou will now pick which one is correct.\n"; \
-	CFGLOC=""; \
-	for poss in $$FOUNDLOCS; do \
-		printf "Is \e[35m$$poss\e[0m correct? "; \
-		read -r -p "(y/n) " RESPONSE; \
-		if [ "$$RESPONSE" = "y" ]; then \
-			CFGLOC=$$poss; \
-			break; \
-		fi; \
-	done; \
-	if [ "$$CFGLOC" = "" ] ; then \
-		printf "No file found or selected. Maybe PARI/GP is installed in a different directory than what you supplied?\n"; \
-		exit; \
-	fi; \
-	printf "$${CFGLOC}" > ./paricfg_loc.txt; \
-	echo "Setup complete!"
+	$(RM) cfracsearch
