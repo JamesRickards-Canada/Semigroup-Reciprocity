@@ -1,5 +1,6 @@
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19827399.svg)](https://doi.org/10.5281/zenodo.20397935)
 # Semigroup-Reciprocity
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19827399.svg)](https://doi.org/10.5281/zenodo.20397935)
+
 This repository is supplementary to the paper [*Reciprocity obstructions in semigroup orbits in SL(2, Z)*](https://doi.org/10.1215/00127094-2025-0017) ([Arxiv](https://arxiv.org/abs/2401.01860)), by James Rickards and Katherine E. Stange.
 
 The goal of the package is to efficiently compute data about certain orbits of semigroups, including computing:
