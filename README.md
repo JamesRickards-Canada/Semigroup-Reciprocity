@@ -60,6 +60,8 @@ If you try to use it on a different version, be aware that it may not work.
 
 ### Troubleshooting
 
-* When in doubt, ```make clean``` to reset the object files, reconfigure with ```./configure```, and then run ```make``` again.
+* If you are encoutering unexpected errors or warnings when building, ensure you found the correct ```pari.cfg``` file. You need to configure the project with the same installation of PARI/GP that you will run it with.
+* If you change versions of PARI/GP, the package needs to be rebuilt: ```make clean``` to reset the object files, reconfigure with ```./configure```, and then run ```make``` again.
+* When in doubt, rebuild the project as above to troubleshoot.
 * If you have any further issues with installation or using the code, please let me know!
  
